@@ -1,0 +1,141 @@
+{
+  "$schema": "https://raw.githubusercontent.com/machanism-org/machai/refs/heads/main/bindex-core/src/main/resources/schema/bindex-schema-v2.json",
+  "id": "org.machanism.machai:bindex-maven-plugin:1.2.3-SNAPSHOT",
+  "name": "org.machanism.machai:bindex-maven-plugin",
+  "version": "1.2.3-SNAPSHOT",
+  "description": "Bindex Maven Plugin is a Java 8 Maven plugin that generates Bindex metadata for a Maven project. Its bindex aggregator goal runs an interactive, document-scanning Ghostwriter workflow without requiring a Maven project, while its bindex-per-module goal runs the same workflow for each Maven module. The plugin resolves compile and runtime dependencies, can process documentation in parallel or non-recursively, and configures its GenAI workflow from Maven and project settings. When a Maven server identifier is configured, credentials and custom XML values from the matching settings.xml server entry are supplied to the processor. It is intended for Maven builds that need structured artifact metadata to support semantic discovery and GenAI-assisted integration.",
+  "authors": [
+    {
+      "name": "Viktor Tovstyi",
+      "email": "viktor.tovstyi@gmail.com",
+      "website": "https://machanism.org"
+    }
+  ],
+  "license": "Apache License, Version 2.0",
+  "classification": {
+    "type": "Maven plugin",
+    "domains": [
+      "Build Automation",
+      "Maven",
+      "Documentation Processing",
+      "Metadata Generation",
+      "GenAI Integration",
+      "Semantic Search"
+    ],
+    "languages": [
+      {
+        "name": "Java",
+        "version": "8"
+      }
+    ],
+    "layers": [
+      "Infrastructure"
+    ],
+    "usageContext": [
+      "Maven build lifecycle",
+      "Multi-module Maven projects",
+      "Automated Bindex metadata generation",
+      "GenAI-assisted document processing"
+    ],
+    "targetEnvironment": [
+      "Java",
+      "Maven"
+    ]
+  },
+  "constructors": [
+    {
+      "package": "org.machanism.machai.bindex.maven",
+      "signature": "public org.machanism.machai.bindex.maven.BindexMojo()",
+      "description": "Creates the aggregator Maven mojo that implements the bindex goal. Maven instantiates and configures this mojo when the goal is invoked.",
+      "examples": [
+        {
+          "snippet": "<plugin>\n  <groupId>org.machanism.machai</groupId>\n  <artifactId>bindex-maven-plugin</artifactId>\n  <version>1.2.3-SNAPSHOT</version>\n</plugin>",
+          "description": "Step 1: install the plugin by adding this declaration to the build plugins in pom.xml. Step 2: configure any required Ghostwriter or server settings in the Maven project or settings.xml. Step 3: invoke the Maven-managed org.machanism.machai.bindex.maven.BindexMojo with mvn org.machanism.machai:bindex-maven-plugin:1.2.3-SNAPSHOT:bindex."
+        }
+      ]
+    },
+    {
+      "package": "org.machanism.machai.bindex.maven",
+      "signature": "public org.machanism.machai.bindex.maven.BindexPerModuleMojo()",
+      "description": "Creates the per-module Maven mojo for the bindex-per-module goal. Maven uses this mojo in a project module.",
+      "examples": [
+        {
+          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.2.3-SNAPSHOT:bindex-per-module",
+          "description": "After installing and configuring the plugin in a module pom.xml, run this command from that module. Maven constructs org.machanism.machai.bindex.maven.BindexPerModuleMojo and scans that module's configured documents."
+        }
+      ]
+    }
+  ],
+  "features": [
+    {
+      "package": "org.machanism.machai.bindex.maven",
+      "name": "bindex",
+      "signature": "public void org.machanism.machai.bindex.maven.BindexMojo.execute() throws org.apache.maven.plugin.MojoExecutionException",
+      "description": "Runs the thread-safe aggregator bindex goal. It initializes usage statistics, creates and configures an ActProcessor, and executes the interactive document-scanning workflow. The goal does not require a Maven project and resolves compile plus runtime dependencies.",
+      "examples": [
+        {
+          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.2.3-SNAPSHOT:bindex",
+          "description": "Use this scenario to generate Bindex metadata from the root of a Maven build. First add the plugin dependency to pom.xml, then configure Ghostwriter properties such as gw.acts and gw.model as appropriate, and finally run this command to invoke the aggregator goal."
+        }
+      ]
+    },
+    {
+      "package": "org.machanism.machai.bindex.maven",
+      "name": "bindex-per-module",
+      "signature": "public void org.machanism.machai.bindex.maven.BindexPerModuleMojo.execute() throws org.apache.maven.plugin.MojoExecutionException",
+      "description": "Runs the thread-safe non-aggregator goal for a Maven project module. It initializes and configures the workflow processor, then scans documents for the current module with compile plus runtime dependency resolution.",
+      "examples": [
+        {
+          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.2.3-SNAPSHOT:bindex-per-module",
+          "description": "Use this in a multi-module build when each module needs separate Bindex processing. Configure the plugin in the module build and run the command from the module directory or bind the goal to a suitable lifecycle phase."
+        }
+      ]
+    },
+    {
+      "package": "org.machanism.machai.bindex.maven",
+      "name": "configureAndScan",
+      "signature": "public void org.machanism.machai.bindex.maven.BindexMojo.configureAndScan(org.machanism.machai.gw.processor.ActProcessor actProcessor) throws org.apache.maven.plugin.MojoExecutionException, java.io.IOException",
+      "description": "Configures an ActProcessor and runs the document scan. Configuration can include credentials and custom values resolved from a configured Maven settings.xml server entry.",
+      "examples": [
+        {
+          "snippet": "<server>\n  <id>CodeMie</id>\n  <username>example-user</username>\n  <password>example-password</password>\n</server>",
+          "description": "For a workflow requiring server credentials, add a matching server entry to settings.xml, configure the plugin to use that server identifier, then run the bindex Maven goal. org.machanism.machai.bindex.maven.BindexMojo transfers the server values to its processor configuration before scanning."
+        }
+      ]
+    }
+  ],
+  "studs": [],
+  "examples": [
+    {
+      "title": "Generate metadata for an entire Maven build",
+      "steps": [
+        "Add org.machanism.machai:bindex-maven-plugin:1.2.3-SNAPSHOT to the Maven build plugins section.",
+        "Configure the Ghostwriter action source and model properties required by the deployment.",
+        "Optionally add a matching server entry to settings.xml when the configured workflow needs credentials.",
+        "Run mvn org.machanism.machai:bindex-maven-plugin:1.2.3-SNAPSHOT:bindex from the build root.",
+        "Review the generated Bindex metadata and use it for semantic artifact discovery or GenAI integration."
+      ]
+    }
+  ],
+  "dependencies": [
+    "org.machanism.machai:ghostwriter:1.2.3-SNAPSHOT",
+    "org.machanism.machai:bindex-core:1.2.3-SNAPSHOT",
+    "org.apache.commons:commons-lang3:3.20.0",
+    "com.google.guava:guava:33.5.0-jre",
+    "org.apache.maven.shared:maven-shared-utils:3.4.2",
+    "org.apache.maven:maven-core:3.8.1",
+    "org.apache.maven.plugin-tools:maven-plugin-annotations:3.15.2",
+    "org.codehaus.plexus:plexus-interactivity-api:1.5.1",
+    "org.slf4j:slf4j-api:2.0.17"
+  ],
+  "location": {
+    "repositoryType": "Maven",
+    "repositoryUrl": "https://repo.maven.apache.org/maven2",
+    "coordinates": {
+      "group": "org.machanism.machai",
+      "artifactId": "bindex-maven-plugin",
+      "version": "1.2.3-SNAPSHOT",
+      "extension": "maven-plugin"
+    }
+  }
+}
