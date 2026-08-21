@@ -30,250 +30,255 @@ import org.machanism.machai.project.layout.ProjectLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Mojo(
-    name = "bindex",
-    aggregator = true,
-    threadSafe = true,
-    requiresProject = false,
-    requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME
-)
+@Mojo(name = "bindex", aggregator = true, threadSafe = true, requiresProject = false, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class BindexMojo extends AbstractMojo {
 
-    static final Logger logger = LoggerFactory.getLogger(BindexMojo.class);
+	static final Logger logger = LoggerFactory.getLogger(BindexMojo.class);
 
-    /**
-     * Provider/model identifier to pass to the workflow.
-     */
-    @Parameter(property = GWConstants.MODEL_PROP_NAME)
-    protected String model;
+	/**
+	 * Configuration property name for the target GenAI server identifier.
+	 */
+	public static final String SERVERID_PROP_NAME = "genai.serverId";
 
-    /**
-     * The Maven module base directory.
-     */
-    @Parameter(defaultValue = "${basedir}", required = true)
-    protected File basedir;
+	/**
+	 * Provider/model identifier to pass to the workflow.
+	 */
+	@Parameter(property = GWConstants.MODEL_PROP_NAME)
+	protected String model;
 
-    /**
-     * Optional scan root override.
-     */
-    @Parameter(property = GWConstants.PATH_PROP_NAME)
-    String path;
+	/**
+	 * The Maven module base directory.
+	 */
+	@Parameter(defaultValue = "${basedir}", required = true)
+	protected File basedir;
 
-    /**
-     * Instruction locations consumed by the workflow.
-     */
-    @Parameter(property = GWConstants.INSTRUCTIONS_PROP_NAME, name = "instructions")
-    protected String instructions;
+	/**
+	 * Optional scan root override.
+	 */
+	@Parameter(property = GWConstants.PATH_PROP_NAME)
+	String path;
 
-    /**
-     * The current Maven project.
-     */
-    @Parameter(readonly = true, defaultValue = "${project}")
-    protected MavenProject project;
+	/**
+	 * Instruction locations consumed by the workflow.
+	 */
+	@Parameter(property = GWConstants.INSTRUCTIONS_PROP_NAME, name = "instructions")
+	protected String instructions;
 
-    /**
-     * The current Maven session.
-     */
-    @Parameter(defaultValue = "${session}", readonly = true, required = true)
-    protected MavenSession session;
+	/**
+	 * The current Maven project.
+	 */
+	@Parameter(readonly = true, defaultValue = "${project}")
+	protected MavenProject project;
 
-    /**
-     * Maven settings used to resolve credentials from {@code settings.xml}.
-     */
-    @Parameter(readonly = true, defaultValue = "${settings}")
-    private Settings settings;
+	/**
+	 * The current Maven session.
+	 */
+	@Parameter(defaultValue = "${session}", readonly = true, required = true)
+	protected MavenSession session;
 
-    /**
-     * Maven {@code server} id used to resolve GenAI credentials.
-     */
-    @Parameter(property = AbstractAIProvider.SERVERID_PROP_NAME, required = false)
-    private String serverId;
+	/**
+	 * Maven settings used to resolve credentials from {@code settings.xml}.
+	 */
+	@Parameter(readonly = true, defaultValue = "${settings}")
+	private Settings settings;
 
-    /**
-     * Reactor projects available in the current Maven session.
-     */
-    @Parameter(defaultValue = "${reactorProjects}", readonly = true)
-    protected List<MavenProject> reactorProjects;
+	/**
+	 * Maven {@code server} id used to resolve GenAI credentials.
+	 */
+	@Parameter(property = SERVERID_PROP_NAME, required = false)
+	private String serverId;
 
-    /**
-     * Executes the interactive action and scans documents using the configured action prompt.
-     *
-     * <p>
-     * This method initializes usage statistics, configures the processor, and executes the
-     * document scanning workflow. It supports interactive mode, parallel execution, and
-     * non-recursive processing based on the current Maven session and configuration.
-     * </p>
-     *
-     * @throws MojoExecutionException if an I/O failure occurs while processing files
-     */
-    @Override
-    public void execute() throws MojoExecutionException {
-        UsageStatistics.init();
+	/**
+	 * Reactor projects available in the current Maven session.
+	 */
+	@Parameter(defaultValue = "${reactorProjects}", readonly = true)
+	protected List<MavenProject> reactorProjects;
 
-        PropertiesConfigurator configuration = getConfiguration();
-        Boolean interactive = configuration.getBoolean(GWConstants.INTERACTIVE_MODE_PROP_NAME, null);
+	/**
+	 * Executes the interactive action and scans documents using the configured
+	 * action prompt.
+	 *
+	 * <p>
+	 * This method initializes usage statistics, configures the processor, and
+	 * executes the document scanning workflow. It supports interactive mode,
+	 * parallel execution, and non-recursive processing based on the current Maven
+	 * session and configuration.
+	 * </p>
+	 *
+	 * @throws MojoExecutionException if an I/O failure occurs while processing
+	 *                                files
+	 */
+	@Override
+	public void execute() throws MojoExecutionException {
+		UsageStatistics.init();
 
-        String model = configuration.get(GWConstants.MODEL_PROP_NAME, this.model);
-        if (model != null) {
-            logger.info("Model: {}", model);
-        }
-        ActProcessor actProcessor = new ActProcessor(basedir, model, configuration) {
-            @Override
-            public ProjectLayout getProjectLayout(File projectDir) throws FileNotFoundException {
-                ProjectLayout projectLayout = super.getProjectLayout(projectDir);
-                projectLayout.projectDir(projectDir);
+		PropertiesConfigurator configuration = getConfiguration();
+		Boolean interactive = configuration.getBoolean(GWConstants.INTERACTIVE_MODE_PROP_NAME, null);
 
-                if (projectLayout instanceof MavenProjectLayout) {
-                    MavenProjectLayout mavenProjectLayout = (MavenProjectLayout) projectLayout;
-                    Model model = mavenProjectLayout.getModel();
-                    updateMavenProjectLayout(mavenProjectLayout, model);
-                }
+		String model = configuration.get(GWConstants.MODEL_PROP_NAME, this.model);
+		if (model != null) {
+			logger.info("Model: {}", model);
+		}
+		ActProcessor actProcessor = new ActProcessor(basedir, model, configuration) {
+			@Override
+			public ProjectLayout getProjectLayout(File projectDir) throws FileNotFoundException {
+				ProjectLayout projectLayout = super.getProjectLayout(projectDir);
+				projectLayout.projectDir(projectDir);
 
-                return projectLayout;
-            }
-        };
+				if (projectLayout instanceof MavenProjectLayout) {
+					MavenProjectLayout mavenProjectLayout = (MavenProjectLayout) projectLayout;
+					Model model = mavenProjectLayout.getModel();
+					updateMavenProjectLayout(mavenProjectLayout, model);
+				}
 
-        List<MavenProject> modules = session.getAllProjects();
-        boolean nonRecursive = project.getModules().size() > 1 && modules.size() == 1;
-        actProcessor.setNonRecursive(nonRecursive);
+				return projectLayout;
+			}
+		};
 
-        boolean isParallel = session.isParallel();
-        if (isParallel) {
-            int threads = session.getRequest().getDegreeOfConcurrency();
-            actProcessor.setThreads(threads);
-        }
+		List<MavenProject> modules = session.getAllProjects();
+		boolean nonRecursive = project.getModules().size() > 1 && modules.size() == 1;
+		actProcessor.setNonRecursive(nonRecursive);
 
-        if (interactive != null) {
-            actProcessor.setInteractive(interactive);
-        }
+		boolean isParallel = session.isParallel();
+		if (isParallel) {
+			int threads = session.getRequest().getDegreeOfConcurrency();
+			actProcessor.setThreads(threads);
+		}
 
-        if (instructions != null) {
-            if (logger.isInfoEnabled()) {
-                logger.info("Instructions: {}", StringUtils.abbreviate(instructions, AbstractAIProvider.LOG_LINE_LENG));
-            }
-            actProcessor.setInstructions(instructions);
-        }
+		if (interactive != null) {
+			actProcessor.setInteractive(interactive);
+		}
 
-        if (model != null) {
-            actProcessor.setModel(model);
-        }
+		if (instructions != null) {
+			if (logger.isInfoEnabled()) {
+				logger.info("Instructions: {}", StringUtils.abbreviate(instructions, AbstractAIProvider.LOG_LINE_LENG));
+			}
+			actProcessor.setInstructions(instructions);
+		}
 
-        try {
-            process(actProcessor);
-        } catch (ProcessTerminationException e) {
-            if (e.getExitCode() != 0) {
-                throw e;
-            }
-        }
-    }
+		if (model != null) {
+			actProcessor.setModel(model);
+		}
 
-    /**
-     * Updates the Maven project layout with the appropriate model configuration.
-     *
-     * @param mavenProjectLayout the Maven project layout to update
-     * @param model              the Maven model containing project metadata
-     */
-    private void updateMavenProjectLayout(MavenProjectLayout mavenProjectLayout, Model model) {
-        for (MavenProject mavenProject : session.getAllProjects()) {
-            if (Strings.CS.equals(mavenProject.getArtifactId(), model.getArtifactId())) {
-                mavenProjectLayout.model(mavenProject.getModel());
-                break;
-            }
-        }
-    }
+		try {
+			process(actProcessor);
+		} catch (ProcessTerminationException e) {
+			if (e.getExitCode() != 0) {
+				throw e;
+			}
+		}
+	}
 
-    /**
-     * Processes the document scanning workflow using the provided processor.
-     *
-     * @param actProcessor the processor configured for scanning and processing documents
-     * @throws MojoExecutionException if an error occurs during processing
-     */
-    protected void process(ActProcessor actProcessor) throws MojoExecutionException {
-        try {
-            configureAndScan(actProcessor);
-        } catch (IOException e) {
-            getLog().error("I/O error occurred during file processing: " + e.getMessage());
-            throw new MojoExecutionException("I/O error occurred during file processing", e);
-        } finally {
-            UsageStatistics.logUsage();
-        }
-    }
+	/**
+	 * Updates the Maven project layout with the appropriate model configuration.
+	 *
+	 * @param mavenProjectLayout the Maven project layout to update
+	 * @param model              the Maven model containing project metadata
+	 */
+	private void updateMavenProjectLayout(MavenProjectLayout mavenProjectLayout, Model model) {
+		for (MavenProject mavenProject : session.getAllProjects()) {
+			if (Strings.CS.equals(mavenProject.getArtifactId(), model.getArtifactId())) {
+				mavenProjectLayout.model(mavenProject.getModel());
+				break;
+			}
+		}
+	}
 
-    /**
-     * Configures and executes the document scanning workflow.
-     *
-     * @param actProcessor the processor configured for scanning and processing documents
-     * @throws MojoExecutionException if scanning or processing fails
-     * @throws IOException            if an I/O error occurs
-     */
-    public void configureAndScan(ActProcessor actProcessor) throws MojoExecutionException, IOException {
-        actProcessor.setAct("bindex");
-        scanDocuments(actProcessor);
-    }
+	/**
+	 * Processes the document scanning workflow using the provided processor.
+	 *
+	 * @param actProcessor the processor configured for scanning and processing
+	 *                     documents
+	 * @throws MojoExecutionException if an error occurs during processing
+	 */
+	protected void process(ActProcessor actProcessor) throws MojoExecutionException {
+		try {
+			configureAndScan(actProcessor);
+		} catch (IOException e) {
+			getLog().error("I/O error occurred during file processing: " + e.getMessage());
+			throw new MojoExecutionException("I/O error occurred during file processing", e);
+		} finally {
+			UsageStatistics.logUsage();
+		}
+	}
 
-    /**
-     * Scans documents in the specified project context using the configured processor.
-     *
-     * @param actProcessor the processor configured for scanning and processing documents
-     * @throws IOException if an I/O error occurs during scanning
-     */
-    protected void scanDocuments(ActProcessor actProcessor) throws IOException {
-        String gwPaths = actProcessor.getConfigurator().get(GWConstants.PATH_PROP_NAME, null);
-        String resolvedPaths = Objects.toString(path, gwPaths);
-        resolvedPaths = Objects.toString(resolvedPaths, basedir.getAbsolutePath());
+	/**
+	 * Configures and executes the document scanning workflow.
+	 *
+	 * @param actProcessor the processor configured for scanning and processing
+	 *                     documents
+	 * @throws MojoExecutionException if scanning or processing fails
+	 * @throws IOException            if an I/O error occurs
+	 */
+	public void configureAndScan(ActProcessor actProcessor) throws MojoExecutionException, IOException {
+		actProcessor.setAct("bindex");
+		scanDocuments(actProcessor);
+	}
 
-        logger.info("Starting scan of path: `{}`", resolvedPaths);
+	/**
+	 * Scans documents in the specified project context using the configured
+	 * processor.
+	 *
+	 * @param actProcessor the processor configured for scanning and processing
+	 *                     documents
+	 * @throws IOException if an I/O error occurs during scanning
+	 */
+	protected void scanDocuments(ActProcessor actProcessor) throws IOException {
+		String gwPaths = actProcessor.getConfigurator().get(GWConstants.PATH_PROP_NAME, null);
+		String resolvedPaths = Objects.toString(path, gwPaths);
+		resolvedPaths = Objects.toString(resolvedPaths, basedir.getAbsolutePath());
 
-        actProcessor.scanDocuments(basedir, resolvedPaths);
-        logger.info("Finished scanning path: {}", resolvedPaths);
-    }
+		logger.info("Starting scan of path: `{}`", resolvedPaths);
 
-    /**
-     * Builds the processor configuration.
-     *
-     * <p>
-     * If a Maven server id is configured, this method reads the matching server entry from
-     * {@code settings.xml} and copies its username, password, and any custom XML configuration
-     * values into the returned configurator.
-     * </p>
-     *
-     * @return configuration for downstream workflow execution
-     * @throws MojoExecutionException if Maven settings are unavailable or the configured server
-     *                                cannot be found
-     */
-    protected PropertiesConfigurator getConfiguration() throws MojoExecutionException {
-        if (settings == null) {
-            throw new MojoExecutionException("Maven settings are not available.");
-        }
+		actProcessor.scanDocuments(basedir, resolvedPaths);
+		logger.info("Finished scanning path: {}", resolvedPaths);
+	}
 
-        PropertiesConfigurator config = new PropertiesConfigurator();
+	/**
+	 * Builds the processor configuration.
+	 *
+	 * <p>
+	 * If a Maven server id is configured, this method reads the matching server
+	 * entry from {@code settings.xml} and copies its username, password, and any
+	 * custom XML configuration values into the returned configurator.
+	 * </p>
+	 *
+	 * @return configuration for downstream workflow execution
+	 * @throws MojoExecutionException if Maven settings are unavailable or the
+	 *                                configured server cannot be found
+	 */
+	protected PropertiesConfigurator getConfiguration() throws MojoExecutionException {
+		if (settings == null) {
+			throw new MojoExecutionException("Maven settings are not available.");
+		}
 
-        if (serverId != null) {
-            Server server = settings.getServer(serverId);
-            if (server == null) {
-                throw new MojoExecutionException(
-                    "No <server> with id '" + serverId + "' found in Maven settings.xml."
-                );
-            }
+		PropertiesConfigurator config = new PropertiesConfigurator();
 
-            String username = server.getUsername();
-            if (StringUtils.isNotBlank(username)) {
-                config.set(AbstractAIProvider.USERNAME_PROP_NAME, username);
-            }
-            String password = server.getPassword();
-            if (StringUtils.isNotBlank(password)) {
-                config.set(AbstractAIProvider.PASSWORD_PROP_NAME, password);
-            }
+		if (serverId != null) {
+			Server server = settings.getServer(serverId);
+			if (server == null) {
+				throw new MojoExecutionException(
+						"No <server> with id '" + serverId + "' found in Maven settings.xml.");
+			}
 
-            if (server.getConfiguration() instanceof Xpp3Dom) {
-                Xpp3Dom configuration = (Xpp3Dom) server.getConfiguration();
-                Xpp3Dom[] children = configuration.getChildren();
-                for (Xpp3Dom xpp3Dom : children) {
-                    config.set(xpp3Dom.getName(), xpp3Dom.getValue());
-                }
-            }
-        }
+			String username = server.getUsername();
+			if (StringUtils.isNotBlank(username)) {
+				config.set(AbstractAIProvider.USERNAME_PROP_NAME, username);
+			}
+			String password = server.getPassword();
+			if (StringUtils.isNotBlank(password)) {
+				config.set(AbstractAIProvider.PASSWORD_PROP_NAME, password);
+			}
 
-        return config;
-    }
+			if (server.getConfiguration() instanceof Xpp3Dom) {
+				Xpp3Dom configuration = (Xpp3Dom) server.getConfiguration();
+				Xpp3Dom[] children = configuration.getChildren();
+				for (Xpp3Dom xpp3Dom : children) {
+					config.set(xpp3Dom.getName(), xpp3Dom.getValue());
+				}
+			}
+		}
+
+		return config;
+	}
 }
