@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
@@ -93,6 +94,25 @@ public class BindexMojo extends AbstractMojo {
 	 */
 	@Parameter(defaultValue = "${reactorProjects}", readonly = true)
 	protected List<MavenProject> reactorProjects;
+
+	/**
+	 * Additional key-value configuration entries merged into the processor
+	 * configuration.
+	 *
+	 * <p>For example, plugin XML can provide
+	 * {@code <params><timeout>30</timeout></params>}.</p>
+	 */
+	@Parameter
+	protected Map<String, String> params;
+
+	/**
+	 * Optional configuration file used when no Maven server id is configured.
+	 * For example, {@code -D} followed by {@link GWConstants#CONFIG_PROP_NAME}
+	 * followed by {@code =machai.properties} selects a custom configuration
+	 * file.
+	 */
+	@Parameter(property = GWConstants.CONFIG_PROP_NAME, required = false)
+	private File configFile;
 
 	/**
 	 * Executes the interactive action and scans documents using the configured
@@ -257,8 +277,7 @@ public class BindexMojo extends AbstractMojo {
 		if (serverId != null) {
 			Server server = settings.getServer(serverId);
 			if (server == null) {
-				throw new MojoExecutionException(
-						"No <server> with id '" + serverId + "' found in Maven settings.xml.");
+				throw new MojoExecutionException("No <server> with id '" + serverId + "' found in Maven settings.xml.");
 			}
 
 			String username = server.getUsername();
@@ -277,6 +296,20 @@ public class BindexMojo extends AbstractMojo {
 					config.set(xpp3Dom.getName(), xpp3Dom.getValue());
 				}
 			}
+		} else {
+			try {
+				String configPath = configFile != null ? configFile.getAbsolutePath() : GWConstants.GW_CONFIG_FILE_NAME;
+				config.setConfiguration(configPath);
+				logger.info("Configuration successfully loaded from: " + configPath);
+			} catch (IOException e) {
+				if (configFile != null) {
+					throw new MojoExecutionException("Failed to load configuration from: " + configFile, e);
+				}
+			}
+		}
+
+		if (params != null) {
+			params.entrySet().stream().forEach(e -> config.set(e.getKey(), e.getValue()));
 		}
 
 		return config;
