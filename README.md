@@ -37,7 +37,7 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/org.machanism.machai/bindex-maven-plugin.svg)](https://central.sonatype.com/artifact/org.machanism.machai/bindex-maven-plugin)
 
-Bindex Maven Plugin is a Java 8 Maven plugin that runs the Bindex action through the Machai Ghostwriter document-processing workflow. It scans a project (or an entire Maven reactor) for documentation and other governed files and delegates action execution to the Ghostwriter `ActProcessor`, applying guidance-driven, GenAI-assisted transformations to generate and register Bindex metadata.
+Bindex Maven Plugin is a Java 17 Maven plugin that runs the Bindex action through the Machai Ghostwriter document-processing workflow. It scans a project (or an entire Maven reactor) for documentation and other governed files and delegates action execution to the Ghostwriter `ActProcessor`, applying guidance-driven, GenAI-assisted transformations to generate and register Bindex metadata.
 
 The plugin is part of the [Machai](https://machai.machanism.org) toolkit and builds on the `ghostwriter` and `bindex-core` libraries. It resolves GenAI credentials from Maven `settings.xml` and can run either as an aggregator across the whole reactor or per module during a standard Maven build.
 
@@ -74,7 +74,7 @@ Common parameters supported by the goals:
 ### Prerequisites
 
 - Git
-- Java 8 or later (the plugin is compiled with `maven.compiler.release` = 8)
+- Java 17 or later (the plugin is compiled with `maven.compiler.release` = 17)
 - Maven 3.8.1 or later
 - Network access to Maven Central and the configured GenAI provider when running the workflow
 
