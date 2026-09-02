@@ -37,7 +37,7 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/org.machanism.machai/bindex-maven-plugin.svg)](https://central.sonatype.com/artifact/org.machanism.machai/bindex-maven-plugin)
 
-Bindex Maven Plugin is a Java 17 Maven plugin that runs the Bindex action through the Machai Ghostwriter document-processing workflow. It scans a project (or an entire Maven reactor) for documentation and other governed files and delegates action execution to the Ghostwriter `ActProcessor`, applying guidance-driven, GenAI-assisted transformations to generate and register Bindex metadata.
+Bindex Maven Plugin is a Java 17 Maven plugin that runs Bindex generation and registration actions through the Machai Ghostwriter document-processing workflow. It scans a project (or an entire Maven reactor) for documentation and other governed files, delegates guidance-driven, GenAI-assisted transformations to the Ghostwriter `ActProcessor`, and can register the resulting Bindex metadata.
 
 The plugin is part of the [Machai](https://machai.machanism.org) toolkit and builds on the `ghostwriter` and `bindex-core` libraries. It resolves GenAI credentials from Maven `settings.xml` and can run either as an aggregator across the whole reactor or per module during a standard Maven build.
 
@@ -48,6 +48,7 @@ Key capabilities include:
 - Aggregator-based scanning that can run without an active Maven project and resolves the scan path from `-Dgw.path` or the current directory.
 - Per-module execution that integrates with Maven's standard reactor build and avoids duplicate module scans.
 - Guidance-driven Bindex action execution powered by the Machai Ghostwriter `ActProcessor`.
+- Registration of generated Bindex metadata through the `bindex/register` workflow.
 - GenAI provider/model selection and credential resolution from `settings.xml` `<server>` entries.
 - Parallel-build awareness that honors Maven's degree of concurrency.
 
@@ -57,6 +58,8 @@ Key capabilities include:
 | --- | --- | --- |
 | `bindex` | [`BindexMojo`](src/main/java/org/machanism/machai/bindex/maven/BindexMojo.java) | Aggregator goal that runs the Bindex action from the aggregation point. Can be invoked without a Maven project and resolves the scan path from `-Dgw.path` or the current project directory. |
 | `bindex-per-module` | [`BindexPerModuleMojo`](src/main/java/org/machanism/machai/bindex/maven/BindexPerModuleMojo.java) | Per-module goal that runs the action in the execution-root context during a standard Maven reactor build, avoiding duplicate module scans. |
+| `register` | [`RegisterMojo`](src/main/java/org/machanism/machai/bindex/maven/RegisterMojo.java) | Aggregator goal that invokes the `bindex/register` workflow to register generated Bindex metadata. Can be invoked without a Maven project. |
+| `register-per-module` | [`RegisterPerModuleMojo`](src/main/java/org/machanism/machai/bindex/maven/RegisterPerModuleMojo.java) | Per-module goal that invokes the registration workflow in each module's Maven execution context. |
 
 ## Parameters
 
@@ -67,6 +70,8 @@ Common parameters supported by the goals:
 | `model` | `-Dgw.model` | Provider/model identifier forwarded to the workflow (for example `openai:gpt-4o-mini`). |
 | `path` | `-Dgw.path` | Optional scan root override. Defaults to the execution-root / project directory. |
 | `instructions` | `-Dgw.instructions` | Additional instruction locations consumed by the workflow. |
+| `excludes` | `-Dgw.excludes` | File or directory patterns excluded from workflow processing. |
+| `configFile` | `-Dgw.config` | Optional workflow configuration file. |
 | `serverId` | `-Dgenai.serverId` | `settings.xml` `<server>` id used to resolve GenAI credentials. |
 
 ## Installation
@@ -116,6 +121,20 @@ Run the action in the execution-root context during a standard reactor build:
 
 ```bat
 mvn org.machanism.machai:bindex-maven-plugin:1.4.1-SNAPSHOT:bindex-per-module -Dgw.path=src\site
+```
+
+### Register generated metadata
+
+After generation, register Bindex metadata through the aggregator goal:
+
+```bat
+mvn org.machanism.machai:bindex-maven-plugin:1.4.1-SNAPSHOT:register -Dgw.path=.
+```
+
+To register in a per-module Maven execution, use:
+
+```bat
+mvn org.machanism.machai:bindex-maven-plugin:1.4.1-SNAPSHOT:register-per-module
 ```
 
 ### Resolve GenAI credentials from `settings.xml`
