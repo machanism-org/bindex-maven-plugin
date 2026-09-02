@@ -36,7 +36,7 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/org.machanism.machai/bindex-maven-plugin.svg)](https://central.sonatype.com/artifact/org.machanism.machai/bindex-maven-plugin)
 
-Bindex Maven Plugin is a Maven plugin that runs Bindex actions through the Machai Ghostwriter document-processing workflow. It scans a project (or an entire Maven reactor) for documentation and other governed files and delegates action execution to the Ghostwriter `ActProcessor`, applying guidance-driven, GenAI-assisted transformations to generate and register Bindex metadata.
+Bindex Maven Plugin is a Java 8 Maven plugin that runs the Bindex action through the Machai Ghostwriter document-processing workflow. It scans a project (or an entire Maven reactor) for documentation and other governed files and delegates action execution to the Ghostwriter `ActProcessor`, applying guidance-driven, GenAI-assisted transformations to generate and register Bindex metadata.
 
 The plugin is part of the [Machai](https://machai.machanism.org) toolkit and builds on the `ghostwriter` and `bindex-core` libraries. It resolves GenAI credentials from Maven `settings.xml` and can run either as an aggregator across the whole reactor or per module during a standard Maven build.
 
@@ -53,7 +53,7 @@ Key capabilities include:
 | Goal | Mojo | Description |
 | --- | --- | --- |
 | `bindex` | [`BindexMojo`](src/main/java/org/machanism/machai/bindex/maven/BindexMojo.java) | Aggregator goal that runs the Bindex action from the aggregation point. Can be invoked without a Maven project and resolves the scan path from `-Dgw.path` or the current project directory. |
-| `act-per-module` | [`BindexPerModuleMojo`](src/main/java/org/machanism/machai/bindex/maven/BindexPerModuleMojo.java) | Per-module goal that runs the action in the execution-root context during a standard Maven reactor build, avoiding duplicate module scans. |
+| `bindex-per-module` | [`BindexPerModuleMojo`](src/main/java/org/machanism/machai/bindex/maven/BindexPerModuleMojo.java) | Per-module goal that runs the action in the execution-root context during a standard Maven reactor build, avoiding duplicate module scans. |
 
 ## Parameters
 
@@ -73,6 +73,7 @@ Common parameters supported by the goals:
 - Git
 - Java 8 or later (the plugin is compiled with `maven.compiler.release` = 8)
 - Maven 3.8.1 or later
+- Network access to Maven Central and the configured GenAI provider when running the workflow
 
 ### Clone and build
 
@@ -97,21 +98,21 @@ mvn -pl bindex-maven-plugin -am clean install
 Run the Bindex action across the project, resolving the scan path from `-Dgw.path`:
 
 ```bat
-mvn org.machanism.machai:bindex-maven-plugin:1.2.3-SNAPSHOT:bindex -Dgw.path=src\site
+mvn org.machanism.machai:bindex-maven-plugin:1.4.1-SNAPSHOT:bindex -Dgw.path=src\site
 ```
 
 Select a specific GenAI model:
 
 ```bat
-mvn org.machanism.machai:bindex-maven-plugin:1.2.3-SNAPSHOT:bindex -Dgw.model=openai:gpt-4o-mini
+mvn org.machanism.machai:bindex-maven-plugin:1.4.1-SNAPSHOT:bindex -Dgw.model=openai:gpt-4o-mini
 ```
 
-### Run the per-module `act-per-module` goal
+### Run the per-module `bindex-per-module` goal
 
 Run the action in the execution-root context during a standard reactor build:
 
 ```bat
-mvn org.machanism.machai:bindex-maven-plugin:1.2.3-SNAPSHOT:act-per-module -Dgw.path=src\site
+mvn org.machanism.machai:bindex-maven-plugin:1.4.1-SNAPSHOT:bindex-per-module -Dgw.path=src\site
 ```
 
 ### Resolve GenAI credentials from `settings.xml`
@@ -120,7 +121,7 @@ Reference a `<server>` id so the plugin can read the username, password, and any
 custom configuration values into the workflow:
 
 ```bat
-mvn org.machanism.machai:bindex-maven-plugin:1.2.3-SNAPSHOT:bindex -Dgenai.serverId=machai-genai
+mvn org.machanism.machai:bindex-maven-plugin:1.4.1-SNAPSHOT:bindex -Dgenai.serverId=machai-genai
 ```
 
 ```xml
@@ -140,7 +141,7 @@ mvn org.machanism.machai:bindex-maven-plugin:1.2.3-SNAPSHOT:bindex -Dgenai.serve
 <plugin>
   <groupId>org.machanism.machai</groupId>
   <artifactId>bindex-maven-plugin</artifactId>
-  <version>1.2.3-SNAPSHOT</version>
+  <version>1.4.1-SNAPSHOT</version>
   <configuration>
     <model>openai:gpt-4o-mini</model>
     <path>src/site</path>
@@ -149,6 +150,8 @@ mvn org.machanism.machai:bindex-maven-plugin:1.2.3-SNAPSHOT:bindex -Dgenai.serve
 ```
 
 ## Contributing
+
+Community contributions are welcome, including documentation improvements, bug fixes, and new workflow integrations.
 
 - Follow the existing repository structure, naming conventions, and code style.
 - Keep changes focused and add or update tests where applicable.
@@ -165,4 +168,6 @@ Licensed under the Apache License, Version 2.0. See [LICENSE.txt](LICENSE.txt).
 - Website: https://machai.machanism.org
 - Source repository: https://github.com/machanism-org/machai
 - Issue tracker: https://github.com/machanism-org/machai/issues
+- Documentation: https://machai.machanism.org
+- Community: https://github.com/machanism-org/machai/discussions
 - Maintainer: Viktor Tovstyi (viktor.tovstyi@gmail.com)

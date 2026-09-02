@@ -1,3 +1,17 @@
+/**
+ * Maven plugin goals for generating Bindex metadata with Machai workflows.
+ *
+ * <p>The package provides an aggregated goal for scanning a complete Maven
+ * reactor and a per-module goal for coordinating equivalent work when Maven
+ * invokes a goal for each module. Both variants obtain provider settings from
+ * Maven server configuration or an optional properties file, then delegate
+ * document discovery and action execution to the shared Machai workflow
+ * processor.</p>
+ *
+ * <p>Use the {@code bindex} goal for an aggregated reactor scan, or
+ * {@code bindex-per-module} when the goal is configured on individual Maven
+ * modules.</p>
+ */
 package org.machanism.machai.bindex.maven;
 
 /*-

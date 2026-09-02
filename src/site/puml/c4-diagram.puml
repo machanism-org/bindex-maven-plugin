@@ -1,0 +1,42 @@
+' @guidance:
+' Create or update the C4 Component-level PlantUML diagram for the project.
+'
+' - If a C4 Component diagram already exists.
+' - If no diagram exists, generate a new one that clearly represents all major components, their responsibilities, and interactions within the project.
+' - Use PlantUML C4-PlantUML syntax and best practices for clarity and maintainability.
+' - Include only relevant components from `/src/main/java` and external systems; remove or omit unnecessary details.
+' - Organize the diagram for readability, avoiding complexity and clutter.
+' - Add SHOW_LEGEND() at the end of the puml code.
+
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+title Bindex Maven Plugin - Component Diagram
+
+Person(developer, "Maven developer", "Invokes the plugin and supplies project configuration.")
+
+System_Boundary(plugin, "Bindex Maven Plugin") {
+  Component(aggregatorMojo, "BindexMojo", "Maven Mojo", "Runs the Bindex action once for the Maven reactor and exposes workflow parameters.")
+  Component(moduleMojo, "BindexPerModuleMojo", "Maven Mojo", "Runs the Bindex action from the execution-root context for per-module builds.")
+}
+
+System_Ext(maven, "Maven", "Build lifecycle, reactor, project model, settings, and plugin execution.")
+System_Ext(projectFiles, "Project files", "Source and documentation files scanned for guidance-driven processing.")
+System_Ext(ghostwriter, "Machai Ghostwriter", "ActProcessor and shared Maven workflow support used to execute the bindex action.")
+System_Ext(bindexCore, "Bindex Core", "Bindex metadata model and registration services used by the bindex action.")
+System_Ext(genai, "GenAI provider", "Configured model endpoint used for guidance-driven document transformations.")
+
+Rel(developer, maven, "Invokes goal / configures")
+Rel(maven, aggregatorMojo, "Executes bindex")
+Rel(maven, moduleMojo, "Executes bindex-per-module")
+Rel(aggregatorMojo, maven, "Reads session, reactor, project, and settings")
+Rel(moduleMojo, maven, "Uses execution-root and module lifecycle")
+Rel(aggregatorMojo, ghostwriter, "Delegates bindex action")
+Rel(moduleMojo, ghostwriter, "Delegates bindex action")
+Rel(ghostwriter, projectFiles, "Scans and transforms")
+Rel(ghostwriter, bindexCore, "Generates and registers metadata")
+Rel(ghostwriter, genai, "Requests model assistance")
+
+SHOW_LEGEND()
+@enduml
