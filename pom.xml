@@ -14,8 +14,9 @@
 
 	<artifactId>bindex-maven-plugin</artifactId>
 	<name>Bindex Maven Plugin</name>
-	<description>
-	</description>
+
+	<!-- @guidance: Analyze the project and put the short description to the `description` tag.  -->
+	<description>Maven plugin that generates Bindex metadata for Maven projects and reactor builds.</description>
 
 	<properties>
 		<maven.compiler.release>17</maven.compiler.release>
