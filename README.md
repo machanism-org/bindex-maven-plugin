@@ -4,7 +4,8 @@
 - **Title:** Add the project name as the main title.
 - **Maven Badge:** Add the Maven Central badge as a new paragraph below the title: ([!\[Maven Central\](https://img.shields.io/maven-central/v/[groupId]/[artifactId].svg)](https://central.sonatype.com/artifact/[groupId]/[artifactId])
 - **Description:** Review project classes.
-#  Installation Instructions
+- Use: src/site/resources/images/c4-diagram.png
+# Installation Instructions
 - **Repository Cloning:** Include instructions on how to clone the repository.
 - **Build Instructions:** Provide steps to build the project using Maven or Gradle.
 - **Prerequisites:** Specify any prerequisites, such as:
@@ -39,6 +40,8 @@
 Bindex Maven Plugin is a Java 8 Maven plugin that runs the Bindex action through the Machai Ghostwriter document-processing workflow. It scans a project (or an entire Maven reactor) for documentation and other governed files and delegates action execution to the Ghostwriter `ActProcessor`, applying guidance-driven, GenAI-assisted transformations to generate and register Bindex metadata.
 
 The plugin is part of the [Machai](https://machai.machanism.org) toolkit and builds on the `ghostwriter` and `bindex-core` libraries. It resolves GenAI credentials from Maven `settings.xml` and can run either as an aggregator across the whole reactor or per module during a standard Maven build.
+
+![Bindex Maven Plugin C4 diagram](src/site/resources/images/c4-diagram.png)
 
 Key capabilities include:
 
