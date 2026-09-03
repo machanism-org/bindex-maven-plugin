@@ -1,16 +1,23 @@
 /**
- * Maven plugin goals for generating Bindex metadata with Machai workflows.
+ * Maven plugin goals for generating and registering Bindex metadata through
+ * Machai workflows.
  *
- * <p>The package provides an aggregated goal for scanning a complete Maven
- * reactor and a per-module goal for coordinating equivalent work when Maven
- * invokes a goal for each module. Both variants obtain provider settings from
- * Maven server configuration or an optional properties file, then delegate
- * document discovery and action execution to the shared Machai workflow
- * processor.</p>
+ * <p>The package exposes reactor-wide and per-module Maven goals. The
+ * {@code bindex} and {@code bindex-per-module} goals delegate metadata
+ * generation to the {@code bindex} Machai Act. The {@code register} and
+ * {@code register-per-module} goals delegate registration of generated
+ * metadata to the {@code bindex/register} Act. Aggregating goals execute once
+ * for a reactor and may be invoked without a project; per-module goals execute
+ * for every project to which they are bound.</p>
  *
- * <p>Use the {@code bindex} goal for an aggregated reactor scan, or
- * {@code bindex-per-module} when the goal is configured on individual Maven
- * modules.</p>
+ * <p>All goals inherit common workflow configuration, including Maven settings
+ * for server credentials, an optional configuration file, model selection,
+ * instructions, exclusion patterns, and arbitrary Act parameters. For
+ * example, invoke reactor-wide generation with
+ * {@code mvn bindex:bindex}, per-module generation with
+ * {@code mvn bindex:bindex-per-module}, reactor-wide registration with
+ * {@code mvn bindex:register}, or per-module registration with
+ * {@code mvn bindex:register-per-module}.</p>
  */
 package org.machanism.machai.bindex.maven;
 
