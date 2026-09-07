@@ -1,0 +1,50 @@
+' @guidance:
+' Create or update the C4 Component-level PlantUML diagram for the project.
+'
+' - If a C4 Component diagram already exists.
+' - If no diagram exists, generate a new one that clearly represents all major components, their responsibilities, and interactions within the project.
+' - Use PlantUML C4-PlantUML syntax and best practices for clarity and maintainability.
+' - Include only relevant components from `/src/main/java` and external systems; remove or omit unnecessary details.
+' - Organize the diagram for readability, avoiding complexity and clutter.
+' - Add SHOW_LEGEND() at the end of the puml code.
+
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+title Bindex Maven Plugin - Component Diagram
+
+Person(developer, "Maven developer", "Invokes the plugin and supplies project configuration.")
+
+System_Boundary(plugin, "Bindex Maven Plugin") {
+  Component(bindexMojo, "BindexMojo", "Maven aggregator Mojo", "Runs the bindex workflow once for a reactor and supplies Maven and workflow configuration.")
+  Component(bindexPerModuleMojo, "BindexPerModuleMojo", "Maven per-module Mojo", "Runs the bindex workflow for each Maven module using per-module execution support.")
+  Component(registerMojo, "RegisterMojo", "Maven aggregator Mojo", "Runs the bindex/register workflow once to register generated metadata.")
+  Component(registerPerModuleMojo, "RegisterPerModuleMojo", "Maven per-module Mojo", "Runs the bindex/register workflow for each module's metadata.")
+}
+
+System_Ext(maven, "Maven", "Build lifecycle, reactor, project model, settings, and plugin execution.")
+System_Ext(projectFiles, "Project files", "Source and documentation files processed to generate Bindex metadata.")
+System_Ext(ghostwriter, "Machai Ghostwriter", "Shared Maven mojo support and workflow processor that execute Bindex actions.")
+System_Ext(bindexCore, "Bindex Core / registry", "Bindex metadata model and registry receiving generated metadata.")
+System_Ext(genai, "GenAI provider", "Configured model endpoint used for guidance-driven document transformations.")
+
+Rel(developer, maven, "Invokes goal / configures")
+Rel(maven, bindexMojo, "Executes bindex")
+Rel(maven, bindexPerModuleMojo, "Executes bindex-per-module")
+Rel(maven, registerMojo, "Executes register")
+Rel(maven, registerPerModuleMojo, "Executes register-per-module")
+Rel(bindexMojo, maven, "Reads session, reactor, project, and settings")
+Rel(bindexPerModuleMojo, maven, "Reads module project, session, reactor, and settings")
+Rel(registerMojo, maven, "Reads inherited workflow configuration")
+Rel(registerPerModuleMojo, maven, "Reads inherited module workflow configuration")
+Rel(bindexMojo, ghostwriter, "Delegates bindex workflow")
+Rel(bindexPerModuleMojo, ghostwriter, "Delegates bindex workflow")
+Rel(registerMojo, ghostwriter, "Delegates bindex/register workflow")
+Rel(registerPerModuleMojo, ghostwriter, "Delegates bindex/register workflow")
+Rel(ghostwriter, projectFiles, "Scans and transforms")
+Rel(ghostwriter, bindexCore, "Generates and registers metadata")
+Rel(ghostwriter, genai, "Requests model assistance")
+
+SHOW_LEGEND()
+@enduml
