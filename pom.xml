@@ -8,25 +8,27 @@
 	<parent>
 		<groupId>org.machanism.machai</groupId>
 		<artifactId>machai</artifactId>
-		<version>1.2.3-SNAPSHOT</version>
+		<version>1.4.1-SNAPSHOT</version>
 	</parent>
 	<packaging>maven-plugin</packaging>
 
 	<artifactId>bindex-maven-plugin</artifactId>
 	<name>Bindex Maven Plugin</name>
-	<description>
-	</description>
+
+	<!-- @guidance: Analyze the project and put the short description to the `description` tag.  -->
+	<description>Maven plugin that generates Bindex metadata for Maven projects and reactor builds.</description>
 
 	<properties>
-		<maven.compiler.release>8</maven.compiler.release>
+		<maven.compiler.release>17</maven.compiler.release>
 		<maven.javadoc.skip>false</maven.javadoc.skip>
+		<gw.acts></gw.acts>
 		<plantuml-generator.scanPackages>org.machanism.machai.bindex.maven*</plantuml-generator.scanPackages>
 	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.machanism.machai</groupId>
-			<artifactId>ghostwriter</artifactId>
+			<artifactId>gw-maven-plugin</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -76,7 +78,7 @@
 				<plugin>
 					<groupId>org.machanism.machai</groupId>
 					<artifactId>bindex-maven-plugin</artifactId>
-					<version>1.2.3-SNAPSHOT</version>
+					<version>${project.version}</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -92,6 +94,26 @@
 		</plugins>
 	</build>
 
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<excludePackageNames>org.machanism.machai.schema</excludePackageNames>
+					<links>
+						<link>
+							https://docs.oracle.com/en/java/javase/11/docs/api/</link>
+						<link>
+							https://macha.machanism.org/core/core-commons/configurator/apidocs/</link>
+						<link>
+							https://machai.machanism.org/project-layout/apidocs/</link>
+					</links>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
+
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
@@ -99,5 +121,11 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
+
+	<scm>
+		<connection>scm:git:https://github.com/machanism-org/machai.git</connection>
+		<developerConnection>scm:git:https://github.com/machanism-org/machai.git</developerConnection>
+		<url>https://github.com/machanism-org/machai.git</url>
+	</scm>
 
 </project>

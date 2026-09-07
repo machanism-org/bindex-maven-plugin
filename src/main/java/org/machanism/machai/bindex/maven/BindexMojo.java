@@ -1,279 +1,187 @@
 package org.machanism.machai.bindex.maven;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Model;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.machanism.macha.core.commons.configurator.PropertiesConfigurator;
-import org.machanism.machai.ai.manager.UsageStatistics;
-import org.machanism.machai.ai.provider.AbstractAIProvider;
-import org.machanism.machai.gw.processor.ActProcessor;
+import org.machanism.machai.gw.maven.AbstractActMojo;
 import org.machanism.machai.gw.processor.GWConstants;
-import org.machanism.machai.gw.tools.ProcessTerminationException;
-import org.machanism.machai.project.layout.MavenProjectLayout;
-import org.machanism.machai.project.layout.ProjectLayout;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-@Mojo(
-    name = "bindex",
-    aggregator = true,
-    threadSafe = true,
-    requiresProject = false,
-    requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME
-)
-public class BindexMojo extends AbstractMojo {
+/**
+ * Aggregated Maven goal that generates Bindex metadata for the current Maven
+ * reactor.
+ *
+ * <p>The goal delegates its work to the {@code bindex} Machai Act. As an
+ * aggregator mojo, it is invoked once for the build rather than once for every
+ * module. The inherited Act infrastructure makes Maven settings, session,
+ * project context, configuration, and additional parameters available to that
+ * workflow.</p>
+ *
+ * <p>Typical command-line usage is {@code mvn bindex:bindex}. The goal may also
+ * be configured in a build and supplied with workflow-specific parameters by
+ * using its Maven plugin configuration.</p>
+ *
+ * @since 1.0
+ */
+@Mojo(name = "bindex", aggregator = true, threadSafe = true, requiresProject = false, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
+public class BindexMojo extends AbstractActMojo {
 
-    static final Logger logger = LoggerFactory.getLogger(BindexMojo.class);
+	/**
+	 * Creates the aggregated Bindex goal.
+	 *
+	 * <p>Maven instantiates mojos reflectively. Configuration values are supplied
+	 * afterwards through the annotated setter methods.</p>
+	 */
+	public BindexMojo() {
+		super();
+	}
 
-    /**
-     * Provider/model identifier to pass to the workflow.
-     */
-    @Parameter(property = GWConstants.MODEL_PROP_NAME)
-    protected String model;
+	/**
+	 * Executes the aggregated Bindex workflow.
+	 *
+	 * <p>This implementation delegates to the shared Act executor with the
+	 * {@code bindex} Act name. The inherited implementation prepares the Maven
+	 * context and applies the configured workflow settings.</p>
+	 *
+	 * @throws MojoExecutionException if the workflow cannot be prepared or
+	 *         executed successfully
+	 */
+	@Override
+	public void execute() throws MojoExecutionException {
+		performAct("bindex");
+	}
 
-    /**
-     * The Maven module base directory.
-     */
-    @Parameter(defaultValue = "${basedir}", required = true)
-    protected File basedir;
+	/**
+	 * Supplies the effective Maven settings for the current invocation.
+	 *
+	 * <p>The inherited workflow infrastructure uses these settings to resolve
+	 * server credentials and other user-level Maven configuration required by the
+	 * Bindex workflow.</p>
+	 *
+	 * @param settings effective settings supplied by Maven; may be {@code null}
+	 *        when Maven does not provide settings
+	 */
+	@Parameter(readonly = true, defaultValue = "${settings}")
+	public void setSettings(Settings settings) {
+		this.settings = settings;
+	}
 
-    /**
-     * Optional scan root override.
-     */
-    @Parameter(property = GWConstants.PATH_PROP_NAME)
-    String path;
+	/**
+	 * Supplies the Maven session associated with this goal execution.
+	 *
+	 * <p>The session exposes reactor projects and execution state needed when the
+	 * aggregated workflow discovers and processes project metadata.</p>
+	 *
+	 * @param session active Maven session supplied by Maven; required for goal
+	 *        execution
+	 */
+	@Parameter(defaultValue = "${session}", readonly = true, required = true)
+	public void setSession(MavenSession session) {
+		this.session = session;
+	}
 
-    /**
-     * Instruction locations consumed by the workflow.
-     */
-    @Parameter(property = GWConstants.INSTRUCTIONS_PROP_NAME, name = "instructions")
-    protected String instructions;
+	/**
+	 * Supplies the project associated with the Maven invocation.
+	 *
+	 * <p>Although this aggregator goal can run without a project, Maven supplies
+	 * the current project when one is available so that the workflow can use its
+	 * coordinates and build context.</p>
+	 *
+	 * @param project current Maven project, or {@code null} when no project is
+	 *        associated with the invocation
+	 */
+	@Parameter(readonly = true, defaultValue = "${project}")
+	public void setProject(MavenProject project) {
+		this.project = project;
+	}
 
-    /**
-     * The current Maven project.
-     */
-    @Parameter(readonly = true, defaultValue = "${project}")
-    protected MavenProject project;
+	/**
+	 * Sets the base directory from which the workflow resolves relative paths.
+	 *
+	 * @param basedir Maven invocation base directory; required for goal execution
+	 */
+	@Parameter(defaultValue = "${basedir}", required = true)
+	public void setBasedir(File basedir) {
+		this.basedir = basedir;
+	}
 
-    /**
-     * The current Maven session.
-     */
-    @Parameter(defaultValue = "${session}", readonly = true, required = true)
-    protected MavenSession session;
+	/**
+	 * Sets an optional workflow configuration file.
+	 *
+	 * <p>When present, the file is forwarded to the shared Machai workflow
+	 * infrastructure to provide configuration in addition to Maven parameters.</p>
+	 *
+	 * @param configFile optional configuration file, or {@code null} to use the
+	 *        workflow's normal configuration resolution
+	 */
+	@Parameter(property = GWConstants.CONFIG_PROP_NAME, required = false)
+	public void setConfigFile(File configFile) {
+		this.configFile = configFile;
+	}
 
-    /**
-     * Maven settings used to resolve credentials from {@code settings.xml}.
-     */
-    @Parameter(readonly = true, defaultValue = "${settings}")
-    private Settings settings;
+	/**
+	 * Selects the AI model used by the Bindex workflow.
+	 *
+	 * @param model model identifier, or {@code null} to allow the workflow to use
+	 *        its configured default
+	 */
+	@Parameter(property = GWConstants.MODEL_PROP_NAME)
+	public void setModel(String model) {
+		this.model = model;
+	}
 
-    /**
-     * Maven {@code server} id used to resolve GenAI credentials.
-     */
-    @Parameter(property = AbstractAIProvider.SERVERID_PROP_NAME, required = false)
-    private String serverId;
+	/**
+	 * Sets additional instructions passed to the Bindex workflow.
+	 *
+	 * @param instructions supplemental workflow instructions, or {@code null} if
+	 *        no additional instructions are configured
+	 */
+	@Parameter(property = GWConstants.INSTRUCTIONS_PROP_NAME, name = "instructions")
+	public void setInstructions(String instructions) {
+		this.instructions = instructions;
+	}
 
-    /**
-     * Reactor projects available in the current Maven session.
-     */
-    @Parameter(defaultValue = "${reactorProjects}", readonly = true)
-    protected List<MavenProject> reactorProjects;
+	/**
+	 * Sets path patterns that the workflow must exclude from processing.
+	 *
+	 * @param excludes exclusion patterns, or {@code null} when no exclusions are
+	 *        configured
+	 */
+	@Parameter(property = GWConstants.EXCLUDES_PROP_NAME, name = "excludes")
+	public void setExcludes(String[] excludes) {
+		this.excludes = excludes;
+	}
 
-    /**
-     * Executes the interactive action and scans documents using the configured action prompt.
-     *
-     * <p>
-     * This method initializes usage statistics, configures the processor, and executes the
-     * document scanning workflow. It supports interactive mode, parallel execution, and
-     * non-recursive processing based on the current Maven session and configuration.
-     * </p>
-     *
-     * @throws MojoExecutionException if an I/O failure occurs while processing files
-     */
-    @Override
-    public void execute() throws MojoExecutionException {
-        UsageStatistics.init();
+	/**
+	 * Selects the Maven server entry containing credentials for the workflow.
+	 *
+	 * @param serverId Maven {@code settings.xml} server identifier, or
+	 *        {@code null} when no server entry is selected explicitly
+	 */
+	@Parameter(property = SERVERID_PROP_NAME, required = false)
+	public void setServerId(String serverId) {
+		this.serverId = serverId;
+	}
 
-        PropertiesConfigurator configuration = getConfiguration();
-        Boolean interactive = configuration.getBoolean(GWConstants.INTERACTIVE_MODE_PROP_NAME, null);
+	/**
+	 * Sets arbitrary workflow parameters declared in the plugin configuration.
+	 *
+	 * <p>Entries are passed unchanged to the Machai workflow, allowing an Act to
+	 * consume configuration that is not represented by a dedicated mojo
+	 * parameter.</p>
+	 *
+	 * @param params parameter names and values, or {@code null} when no extra
+	 *        parameters are configured
+	 */
+	@Parameter
+	public void setParams(Map<String, String> params) {
+		this.params = params;
+	}
 
-        String model = configuration.get(GWConstants.MODEL_PROP_NAME, this.model);
-        if (model != null) {
-            logger.info("Model: {}", model);
-        }
-        ActProcessor actProcessor = new ActProcessor(basedir, model, configuration) {
-            @Override
-            public ProjectLayout getProjectLayout(File projectDir) throws FileNotFoundException {
-                ProjectLayout projectLayout = super.getProjectLayout(projectDir);
-                projectLayout.projectDir(projectDir);
-
-                if (projectLayout instanceof MavenProjectLayout) {
-                    MavenProjectLayout mavenProjectLayout = (MavenProjectLayout) projectLayout;
-                    Model model = mavenProjectLayout.getModel();
-                    updateMavenProjectLayout(mavenProjectLayout, model);
-                }
-
-                return projectLayout;
-            }
-        };
-
-        List<MavenProject> modules = session.getAllProjects();
-        boolean nonRecursive = project.getModules().size() > 1 && modules.size() == 1;
-        actProcessor.setNonRecursive(nonRecursive);
-
-        boolean isParallel = session.isParallel();
-        if (isParallel) {
-            int threads = session.getRequest().getDegreeOfConcurrency();
-            actProcessor.setThreads(threads);
-        }
-
-        if (interactive != null) {
-            actProcessor.setInteractive(interactive);
-        }
-
-        if (instructions != null) {
-            if (logger.isInfoEnabled()) {
-                logger.info("Instructions: {}", StringUtils.abbreviate(instructions, AbstractAIProvider.LOG_LINE_LENG));
-            }
-            actProcessor.setInstructions(instructions);
-        }
-
-        if (model != null) {
-            actProcessor.setModel(model);
-        }
-
-        try {
-            process(actProcessor);
-        } catch (ProcessTerminationException e) {
-            if (e.getExitCode() != 0) {
-                throw e;
-            }
-        }
-    }
-
-    /**
-     * Updates the Maven project layout with the appropriate model configuration.
-     *
-     * @param mavenProjectLayout the Maven project layout to update
-     * @param model              the Maven model containing project metadata
-     */
-    private void updateMavenProjectLayout(MavenProjectLayout mavenProjectLayout, Model model) {
-        for (MavenProject mavenProject : session.getAllProjects()) {
-            if (Strings.CS.equals(mavenProject.getArtifactId(), model.getArtifactId())) {
-                mavenProjectLayout.model(mavenProject.getModel());
-                break;
-            }
-        }
-    }
-
-    /**
-     * Processes the document scanning workflow using the provided processor.
-     *
-     * @param actProcessor the processor configured for scanning and processing documents
-     * @throws MojoExecutionException if an error occurs during processing
-     */
-    protected void process(ActProcessor actProcessor) throws MojoExecutionException {
-        try {
-            configureAndScan(actProcessor);
-        } catch (IOException e) {
-            getLog().error("I/O error occurred during file processing: " + e.getMessage());
-            throw new MojoExecutionException("I/O error occurred during file processing", e);
-        } finally {
-            UsageStatistics.logUsage();
-        }
-    }
-
-    /**
-     * Configures and executes the document scanning workflow.
-     *
-     * @param actProcessor the processor configured for scanning and processing documents
-     * @throws MojoExecutionException if scanning or processing fails
-     * @throws IOException            if an I/O error occurs
-     */
-    public void configureAndScan(ActProcessor actProcessor) throws MojoExecutionException, IOException {
-        actProcessor.setAct("bindex");
-        scanDocuments(actProcessor);
-    }
-
-    /**
-     * Scans documents in the specified project context using the configured processor.
-     *
-     * @param actProcessor the processor configured for scanning and processing documents
-     * @throws IOException if an I/O error occurs during scanning
-     */
-    protected void scanDocuments(ActProcessor actProcessor) throws IOException {
-        String gwPaths = actProcessor.getConfigurator().get(GWConstants.PATH_PROP_NAME, null);
-        String resolvedPaths = Objects.toString(path, gwPaths);
-        resolvedPaths = Objects.toString(resolvedPaths, basedir.getAbsolutePath());
-
-        logger.info("Starting scan of path: `{}`", resolvedPaths);
-
-        actProcessor.scanDocuments(basedir, resolvedPaths);
-        logger.info("Finished scanning path: {}", resolvedPaths);
-    }
-
-    /**
-     * Builds the processor configuration.
-     *
-     * <p>
-     * If a Maven server id is configured, this method reads the matching server entry from
-     * {@code settings.xml} and copies its username, password, and any custom XML configuration
-     * values into the returned configurator.
-     * </p>
-     *
-     * @return configuration for downstream workflow execution
-     * @throws MojoExecutionException if Maven settings are unavailable or the configured server
-     *                                cannot be found
-     */
-    protected PropertiesConfigurator getConfiguration() throws MojoExecutionException {
-        if (settings == null) {
-            throw new MojoExecutionException("Maven settings are not available.");
-        }
-
-        PropertiesConfigurator config = new PropertiesConfigurator();
-
-        if (serverId != null) {
-            Server server = settings.getServer(serverId);
-            if (server == null) {
-                throw new MojoExecutionException(
-                    "No <server> with id '" + serverId + "' found in Maven settings.xml."
-                );
-            }
-
-            String username = server.getUsername();
-            if (StringUtils.isNotBlank(username)) {
-                config.set(AbstractAIProvider.USERNAME_PROP_NAME, username);
-            }
-            String password = server.getPassword();
-            if (StringUtils.isNotBlank(password)) {
-                config.set(AbstractAIProvider.PASSWORD_PROP_NAME, password);
-            }
-
-            if (server.getConfiguration() instanceof Xpp3Dom) {
-                Xpp3Dom configuration = (Xpp3Dom) server.getConfiguration();
-                Xpp3Dom[] children = configuration.getChildren();
-                for (Xpp3Dom xpp3Dom : children) {
-                    config.set(xpp3Dom.getName(), xpp3Dom.getValue());
-                }
-            }
-        }
-
-        return config;
-    }
 }
