@@ -17,10 +17,10 @@ title Bindex Maven Plugin - Component Diagram
 Person(developer, "Maven developer", "Invokes the plugin and supplies project configuration.")
 
 System_Boundary(plugin, "Bindex Maven Plugin") {
-  Component(bindexMojo, "BindexMojo", "Maven aggregator Mojo", "Runs the bindex workflow once for a reactor and supplies Maven and workflow configuration.")
+  Component(bindexMojo, "BindexMojo", "Aggregator Maven Mojo", "Runs the bindex workflow once for a reactor and supplies Maven and workflow configuration.")
   Component(bindexPerModuleMojo, "BindexPerModuleMojo", "Maven per-module Mojo", "Runs the bindex workflow for each Maven module using per-module execution support.")
-  Component(registerMojo, "RegisterMojo", "Maven aggregator Mojo", "Runs the bindex/register workflow once to register generated metadata.")
-  Component(registerPerModuleMojo, "RegisterPerModuleMojo", "Maven per-module Mojo", "Runs the bindex/register workflow for each module's metadata.")
+  Component(registerMojo, "RegisterMojo", "Aggregator Maven Mojo", "Inherits BindexMojo configuration and runs bindex/register once to register generated metadata.")
+  Component(registerPerModuleMojo, "RegisterPerModuleMojo", "Maven per-module Mojo", "Inherits BindexPerModuleMojo configuration and runs bindex/register for each module's metadata.")
 }
 
 System_Ext(maven, "Maven", "Build lifecycle, reactor, project model, settings, and plugin execution.")
@@ -34,6 +34,9 @@ Rel(maven, bindexMojo, "Executes bindex")
 Rel(maven, bindexPerModuleMojo, "Executes bindex-per-module")
 Rel(maven, registerMojo, "Executes register")
 Rel(maven, registerPerModuleMojo, "Executes register-per-module")
+Rel(maven, projectFiles, "Provides project context and files")
+Rel(registerMojo, bindexMojo, "Extends; inherits workflow configuration")
+Rel(registerPerModuleMojo, bindexPerModuleMojo, "Extends; inherits per-module workflow configuration")
 Rel(bindexMojo, maven, "Reads session, reactor, project, and settings")
 Rel(bindexPerModuleMojo, maven, "Reads module project, session, reactor, and settings")
 Rel(registerMojo, maven, "Reads inherited workflow configuration")

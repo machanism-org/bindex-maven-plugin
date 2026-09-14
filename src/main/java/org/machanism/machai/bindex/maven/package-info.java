@@ -2,22 +2,49 @@
  * Maven plugin goals for generating and registering Bindex metadata through
  * Machai workflows.
  *
- * <p>The package exposes reactor-wide and per-module Maven goals. The
- * {@code bindex} and {@code bindex-per-module} goals delegate metadata
- * generation to the {@code bindex} Machai Act. The {@code register} and
- * {@code register-per-module} goals delegate registration of generated
- * metadata to the {@code bindex/register} Act. Aggregating goals execute once
- * for a reactor and may be invoked without a project; per-module goals execute
- * for every project to which they are bound.</p>
+ * <p>{@link BindexMojo} provides the reactor-wide {@code bindex} goal. It is an
+ * aggregator goal and may run without a Maven project. {@link BindexPerModuleMojo}
+ * provides the {@code bindex-per-module} goal, which requires a project and
+ * executes once for each module to which it is bound. {@link RegisterMojo} and
+ * {@link RegisterPerModuleMojo} provide the corresponding reactor-wide and
+ * per-module registration goals. Generation delegates to the {@code bindex}
+ * Machai Act, while registration delegates to the {@code bindex/register} Act.</p>
  *
- * <p>All goals inherit common workflow configuration, including Maven settings
- * for server credentials, an optional configuration file, model selection,
- * instructions, exclusion patterns, and arbitrary Act parameters. For
- * example, invoke reactor-wide generation with
- * {@code mvn bindex:bindex}, per-module generation with
- * {@code mvn bindex:bindex-per-module}, reactor-wide registration with
- * {@code mvn bindex:register}, or per-module registration with
- * {@code mvn bindex:register-per-module}.</p>
+ * <table>
+ * <caption>Available Maven goals</caption>
+ * <tr><th>Goal</th><th>Execution scope</th><th>Purpose</th></tr>
+ * <tr><td>{@code bindex}</td><td>Reactor</td>
+ *     <td>Generates Bindex metadata once for the reactor.</td></tr>
+ * <tr><td>{@code bindex-per-module}</td><td>Module</td>
+ *     <td>Generates Bindex metadata for each bound Maven module.</td></tr>
+ * <tr><td>{@code register}</td><td>Reactor</td>
+ *     <td>Registers generated Bindex metadata once for the reactor.</td></tr>
+ * <tr><td>{@code register-per-module}</td><td>Module</td>
+ *     <td>Registers generated Bindex metadata for each bound Maven module.</td></tr>
+ * </table>
+ *
+ * <p>All goals share workflow configuration for Maven settings and server
+ * credentials, an optional configuration file, model selection, supplemental
+ * instructions, exclusion patterns, and arbitrary Act parameters. Invoke the
+ * reactor-wide generation goal with {@code mvn bindex:bindex}, the per-module
+ * generation goal with {@code mvn bindex:bindex-per-module}, the reactor-wide
+ * registration goal with {@code mvn bindex:register}, or the per-module
+ * registration goal with {@code mvn bindex:register-per-module}.</p>
+ *
+ * <p>Goals may also be bound to Maven lifecycle phases. For example, bind the
+ * per-module generation goal when every module must produce its own metadata:</p>
+ *
+ * <pre>
+ * &lt;plugin&gt;
+ *   &lt;groupId&gt;org.machanism.machai&lt;/groupId&gt;
+ *   &lt;artifactId&gt;bindex-maven-plugin&lt;/artifactId&gt;
+ *   &lt;executions&gt;
+ *     &lt;execution&gt;
+ *       &lt;goals&gt;&lt;goal&gt;bindex-per-module&lt;/goal&gt;&lt;/goals&gt;
+ *     &lt;/execution&gt;
+ *   &lt;/executions&gt;
+ * &lt;/plugin&gt;
+ * </pre>
  */
 package org.machanism.machai.bindex.maven;
 

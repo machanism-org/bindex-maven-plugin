@@ -19,6 +19,16 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 public class RegisterMojo extends BindexMojo {
 
 	/**
+	 * Creates the reactor-wide Bindex registration goal.
+	 *
+	 * <p>Maven instantiates this mojo reflectively and injects the inherited
+	 * workflow configuration before execution.</p>
+	 */
+	public RegisterMojo() {
+		super();
+	}
+
+	/**
 	 * Executes the Bindex registration workflow.
 	 *
 	 * @throws MojoExecutionException if the registration workflow cannot be

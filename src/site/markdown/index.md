@@ -31,14 +31,30 @@ All goals inherit the shared Ghostwriter workflow configuration. Maven supplies 
 
 The diagram shows Maven invoking the four mojos, which delegate to Machai Ghostwriter. Ghostwriter scans project files, uses Bindex Core and its registry to generate or register metadata, and contacts a configured GenAI provider when the selected workflow requires model assistance.
 
+### Maven goals
+
+| Goal | Scope | Purpose |
+| --- | --- | --- |
+| `bindex` | Reactor | Generates Bindex metadata once for the reactor. This aggregator goal does not require a Maven project. |
+| `bindex-per-module` | Module | Generates Bindex metadata for each Maven module to which the goal is bound. |
+| `register` | Reactor | Registers generated Bindex metadata once for the reactor. This aggregator goal does not require a Maven project. |
+| `register-per-module` | Module | Registers generated Bindex metadata for each Maven module to which the goal is bound. |
+
+The generation goals invoke the `bindex` Machai Act; the registration goals invoke `bindex/register`. Reactor-wide goals are useful when one metadata document represents the complete build, while per-module goals are appropriate when each module must produce or register its own metadata.
+
 ## Supported AI providers
 
-The plugin itself does not implement provider-specific clients; it passes the selected model and credentials to the Machai Ghostwriter workflow. The runtime dependencies provide support for the following providers:
+The plugin delegates model execution to Machai Ghostwriter; provider selection and provider-specific settings are interpreted by the transitive Machai GenAI client. Select a model with `gw.model` and, when credentials are needed, select a Maven `settings.xml` server with `genai.serverId`. The runtime supports the following provider modes:
 
-- **OpenAI** — select an OpenAI model through `gw.model` (for example, `openai:gpt-4o-mini`) and select a Maven `settings.xml` server containing the required credentials with `genai.serverId`.
-- **Anthropic** — select the Anthropic model identifier understood by the configured workflow through `gw.model`, and use `genai.serverId` to select the Maven server entry containing its credentials.
+| Provider | Model selection | Configuration |
+| --- | --- | --- |
+| **OpenAI** | Use an OpenAI model, for example `gpt-4o-mini`. | Configure the OpenAI credential and any endpoint options in the selected workflow/server configuration. OpenAI-compatible endpoints are supported by the underlying provider. |
+| **Anthropic** | Use a Claude model, for example `claude-3-5-sonnet-latest`. | Configure Anthropic credentials and optional provider settings in the selected workflow/server configuration. |
+| **CodeMie** | Use the CodeMie model identifier required by the configured service. | Configure CodeMie authentication in the selected server/workflow configuration. CodeMie routes supported `gpt-*`, `gemini-*`, and embedding models through its OpenAI-compatible path, and `claude-*` models through its Anthropic path. |
+| **Tools** | Use the special `yaml` model. | This local, tool-only mode executes registered function tools from structured YAML prompts and does not call a remote AI provider. |
+| **None** | Use the disabled provider model; `log` enables diagnostic logging. | Use when a workflow intentionally must not perform AI work; submitted provider input is discarded. |
 
-Provider endpoints, authentication conventions, and any additional provider-specific options are workflow configuration, rather than parameters defined by this Maven plugin. Store secrets in Maven `settings.xml`, not in the project POM or command history. The server's `username` and `password` are made available to the workflow by the shared Maven integration.
+Keep secrets out of the POM and command history. The shared Maven integration exposes the selected server's `username` and `password` to the workflow; provider endpoints, API conventions, and additional provider options belong in the Ghostwriter workflow configuration or the selected Maven server entry.
 
 ### Common configuration
 
@@ -52,8 +68,24 @@ Provider endpoints, authentication conventions, and any additional provider-spec
 | `serverId` | `genai.serverId` | ID of the Maven `settings.xml` server entry that supplies workflow credentials. | Not set |
 | `params` | — | Additional action-specific values defined in plugin configuration. | Not set |
 | `session` | `${session}` | Maven session and reactor context. | Maven-supplied session |
-| `project` | `${project}` | Current Maven project; optional for aggregator goals and available for per-module goals. | Maven-supplied project when available |
+| `project` | `${project}` | Current Maven project; optional for aggregator goals and required for per-module goals. | Maven-supplied project when available |
 | `settings` | `${settings}` | Effective Maven settings, including server entries. | Maven-supplied settings |
+
+The parameters are available on all four goals. For example, a per-module goal can be bound in a plugin execution:
+
+```xml
+<plugin>
+  <groupId>org.machanism.machai</groupId>
+  <artifactId>bindex-maven-plugin</artifactId>
+  <executions>
+    <execution>
+      <goals>
+        <goal>bindex-per-module</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
+```
 
 Example credential configuration:
 
@@ -66,12 +98,12 @@ Example credential configuration:
 ```
 
 ```bash
-mvn bindex:bindex -Dgw.model=openai:gpt-4o-mini -Dgenai.serverId=machai-genai
+mvn bindex:bindex -Dgw.model=gpt-4o-mini -Dgenai.serverId=machai-genai
 ```
 
 ## Resources
 
 - [Machai platform](https://machai.machanism.org/)
-- [Machai GitHub repository](https://github.com/machanism-org/machai)
+- [Bindex Maven Plugin GitHub repository](https://github.com/machanism-org/bindex-maven-plugin)
 - [Bindex Maven Plugin on Maven Central](https://central.sonatype.com/artifact/org.machanism.machai/bindex-maven-plugin)
-- [Bindex metadata](https://raw.githubusercontent.com/machanism-org/machai/refs/heads/main/genai-client/bindex.json)
+- [Bindex metadata](https://raw.githubusercontent.com/machanism-org/bindex-maven-plugin/refs/heads/main/bindex.json)

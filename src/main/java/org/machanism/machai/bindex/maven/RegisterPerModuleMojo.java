@@ -24,6 +24,16 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 public class RegisterPerModuleMojo extends BindexPerModuleMojo {
 
 	/**
+	 * Creates the per-module Bindex registration goal.
+	 *
+	 * <p>Maven instantiates this mojo reflectively and injects the inherited
+	 * workflow configuration for the current module before execution.</p>
+	 */
+	public RegisterPerModuleMojo() {
+		super();
+	}
+
+	/**
 	 * Executes the per-module Bindex registration workflow.
 	 *
 	 * <p>The workflow receives the Maven project, session, reactor, and
