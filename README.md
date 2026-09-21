@@ -27,6 +27,8 @@ All goals inherit shared Ghostwriter workflow configuration. Maven supplies the 
 
 Maven invokes four plugin goals: aggregator goals process a reactor once, and per-module goals process each module. Each goal delegates to Machai Ghostwriter, which scans project content and uses Bindex Core and its registry to generate or register metadata. When the selected workflow needs model assistance, Ghostwriter contacts the configured GenAI provider. Maven supplies build, reactor, project, and settings context to the goals; the registration goals reuse the configuration of their corresponding generation goals.
 
+The component relationships are organized around the four Maven mojos: the generation mojos run the `bindex` workflow, and the registration mojos run `bindex/register`. Ghostwriter receives the Maven context, scans project files, coordinates Bindex metadata generation or registration, and requests assistance from the configured GenAI provider when needed.
+
 ![Bindex Maven Plugin component diagram](src/site/resources/images/c4-diagram.png)
 
 ## Introduction
