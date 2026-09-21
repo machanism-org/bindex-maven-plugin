@@ -37,6 +37,31 @@ The plugin makes Bindex metadata workflows available from Maven builds. Use `bin
 
 The plugin delegates model execution to Machai Ghostwriter; provider selection and provider-specific settings are interpreted by the transitive Machai GenAI client. Select a model with `gw.model` and, when credentials are needed, select a Maven `settings.xml` server with `genai.serverId`.
 
+### Maven goals
+
+| Goal | Scope | Purpose |
+| --- | --- | --- |
+| `bindex` | Reactor | Generates Bindex metadata once for the reactor. This aggregator goal does not require a Maven project. |
+| `bindex-per-module` | Module | Generates Bindex metadata for each Maven module to which the goal is bound. |
+| `register` | Reactor | Registers generated Bindex metadata once for the reactor. This aggregator goal does not require a Maven project. |
+| `register-per-module` | Module | Registers generated Bindex metadata for each Maven module to which the goal is bound. |
+
+The generation goals invoke the `bindex` Machai Act, while the registration goals invoke `bindex/register`. Reactor-wide goals are appropriate when one metadata document represents the complete build; per-module goals are appropriate when each module must produce or register its own metadata. For example, bind per-module generation in a plugin execution:
+
+```xml
+<plugin>
+  <groupId>org.machanism.machai</groupId>
+  <artifactId>bindex-maven-plugin</artifactId>
+  <executions>
+    <execution>
+      <goals>
+        <goal>bindex-per-module</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
+```
+
 ### Supported AI providers
 
 | Provider | Model selection | Configuration |
