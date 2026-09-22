@@ -126,5 +126,9 @@
 		<developerConnection>scm:git:https://github.com/machanism-org/bindex-maven-plugin.git</developerConnection>
 		<url>https://github.com/machanism-org/bindex-maven-plugin.git</url>
 	</scm>
+	
+	<issueManagement>
+		<url>https://github.com/machanism-org/bindex-maven-plugin/issues</url>
+	</issueManagement>
 
 </project>
