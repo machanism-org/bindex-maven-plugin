@@ -84,7 +84,7 @@ Keep secrets out of the POM and command history. The shared Maven integration ex
 | `configFile` | `gw.config` | Optional Ghostwriter workflow configuration file. | Not set; normal workflow resolution applies |
 | `model` | `gw.model` | Provider/model identifier passed to the workflow. | Not set; workflow-configured default applies |
 | `instructions` | `gw.instructions` | Supplemental instructions for the workflow. | Not set |
-| `excludes` | `gw.excludes` | File-path patterns excluded from processing. | Not set |
+| `excludes` | `gw.excludes` | path patterns excluded from processing. | Not set |
 | `serverId` | `genai.serverId` | ID of the Maven `settings.xml` server entry that supplies workflow credentials. | Not set |
 | `params` | — | Additional action-specific values defined in plugin configuration. | Not set |
 | `session` | `${session}` | Maven session and reactor context. | Maven-supplied session |
