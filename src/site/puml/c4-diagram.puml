@@ -14,31 +14,37 @@
 LAYOUT_TOP_DOWN()
 title Bindex Maven Plugin - Component Diagram
 
-Person(developer, "Maven developer", "Invokes the plugin and supplies project configuration.")
+Person(developer, "Maven developer", "Configures and invokes the plugin goals.")
 
-System_Boundary(plugin, "Bindex Maven Plugin") {
-  Component(bindexMojo, "BindexMojo", "Aggregator Maven Mojo", "Executes the bindex Act once for the Maven reactor and exposes shared workflow configuration.")
-  Component(bindexPerModuleMojo, "BindexPerModuleMojo", "Per-module Maven Mojo", "Executes the bindex Act for each Maven module and exposes shared workflow configuration.")
-  Component(registerMojo, "RegisterMojo", "Aggregator Maven Mojo", "Reuses the aggregator configuration and executes bindex/register once for the reactor.")
-  Component(registerPerModuleMojo, "RegisterPerModuleMojo", "Per-module Maven Mojo", "Reuses the per-module configuration and executes bindex/register for each module.")
+Container_Boundary(plugin, "Bindex Maven Plugin") {
+  Component(bindexMojo, "BindexMojo", "Aggregator Maven Mojo", "Runs the bindex Act once for the reactor and exposes shared workflow configuration.")
+  Component(bindexPerModuleMojo, "BindexPerModuleMojo", "Per-module Maven Mojo", "Runs the bindex Act for each module and exposes shared workflow configuration.")
+  Component(registerMojo, "RegisterMojo", "Aggregator Maven Mojo", "Runs bindex/register once for the reactor using configuration inherited from BindexMojo.")
+  Component(registerPerModuleMojo, "RegisterPerModuleMojo", "Per-module Maven Mojo", "Runs bindex/register for each module using configuration inherited from BindexPerModuleMojo.")
 }
 
 System_Ext(maven, "Apache Maven", "Build lifecycle, reactor, project model, settings, and plugin execution.")
-System_Ext(actRuntime, "Machai Ghostwriter Act runtime", "Shared runtime that prepares Maven context, applies workflow configuration, and executes Acts.")
-System_Ext(bindexActs, "Bindex Acts and registry", "Configured bindex and bindex/register workflows that generate or register Bindex metadata.")
+System_Ext(actRuntime, "Machai Ghostwriter", "Shared Maven Act infrastructure prepares build context, applies workflow configuration, and executes Acts.")
+System_Ext(bindexActs, "Bindex Acts", "Workflows that generate or register Bindex metadata.")
+System_Ext(bindexRegistry, "Bindex registry", "External service that stores registered Bindex metadata.")
+System_Ext(projectFiles, "Maven project files", "Source and project content scanned by the Bindex workflow.")
+System_Ext(genaiProvider, "Configured GenAI provider", "Provides model assistance when requested by the selected workflow.")
 
-Rel(developer, maven, "Invokes goal / configures")
+Rel(developer, maven, "Configures and invokes goals")
 Rel(maven, bindexMojo, "Executes bindex")
 Rel(maven, bindexPerModuleMojo, "Executes bindex-per-module")
 Rel(maven, registerMojo, "Executes register")
 Rel(maven, registerPerModuleMojo, "Executes register-per-module")
-Rel(registerMojo, bindexMojo, "Extends and inherits configuration")
-Rel(registerPerModuleMojo, bindexPerModuleMojo, "Extends and inherits configuration")
+Rel(registerMojo, bindexMojo, "Inherits configuration")
+Rel(registerPerModuleMojo, bindexPerModuleMojo, "Inherits configuration")
 Rel(bindexMojo, actRuntime, "Delegates bindex execution")
 Rel(bindexPerModuleMojo, actRuntime, "Delegates bindex execution")
 Rel(registerMojo, actRuntime, "Delegates bindex/register execution")
 Rel(registerPerModuleMojo, actRuntime, "Delegates bindex/register execution")
-Rel(actRuntime, bindexActs, "Prepares context and executes")
+Rel(actRuntime, bindexActs, "Prepares context and executes workflow")
+Rel(bindexActs, projectFiles, "Scans project content and produces metadata")
+Rel(bindexActs, genaiProvider, "Requests model assistance when needed")
+Rel(bindexActs, bindexRegistry, "Registers Bindex metadata")
 
 SHOW_LEGEND()
 @enduml
