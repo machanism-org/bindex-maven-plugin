@@ -1,5 +1,7 @@
 package org.machanism.machai.bindex.maven;
 
+import java.io.IOException;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -8,10 +10,12 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  * Maven goal that registers the project's generated Bindex metadata with the
  * configured Bindex registry.
  *
- * <p>This aggregator goal does not require a Maven project and resolves compile
+ * <p>
+ * This aggregator goal does not require a Maven project and resolves compile
  * and runtime dependencies before delegating registration to the
  * {@code bindex/register} Machai workflow. Configuration inherited from
- * {@link BindexMojo} supplies the registry connection and workflow settings.</p>
+ * {@link BindexMojo} supplies the registry connection and workflow settings.
+ * </p>
  *
  * @since 1.4.1
  */
@@ -21,8 +25,10 @@ public class RegisterMojo extends BindexMojo {
 	/**
 	 * Creates the reactor-wide Bindex registration goal.
 	 *
-	 * <p>Maven instantiates this mojo reflectively and injects the inherited
-	 * workflow configuration before execution.</p>
+	 * <p>
+	 * Maven instantiates this mojo reflectively and injects the inherited workflow
+	 * configuration before execution.
+	 * </p>
 	 */
 	public RegisterMojo() {
 		super();
@@ -32,11 +38,15 @@ public class RegisterMojo extends BindexMojo {
 	 * Executes the Bindex registration workflow.
 	 *
 	 * @throws MojoExecutionException if the registration workflow cannot be
-	 *         executed
+	 *                                executed
 	 */
 	@Override
 	public void execute() throws MojoExecutionException {
-		performAct("bindex/register");
+		try {
+			performAct("bindex/register");
+		} catch (IOException e) {
+			throw new MojoExecutionException("Execution failed.", e);
+		}
 	}
 
 }

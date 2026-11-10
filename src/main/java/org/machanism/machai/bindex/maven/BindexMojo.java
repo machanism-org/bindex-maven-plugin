@@ -1,6 +1,7 @@
 package org.machanism.machai.bindex.maven;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 import org.apache.maven.execution.MavenSession;
@@ -54,7 +55,11 @@ public class BindexMojo extends AbstractActMojo {
 	 */
 	@Override
 	public void execute() throws MojoExecutionException {
-		performAct("bindex");
+		try {
+			performAct("bindex");
+		} catch (IOException e) {
+			throw new MojoExecutionException("Execution failed.", e);
+		}
 	}
 
 	/**
