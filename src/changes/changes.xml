@@ -3,5 +3,8 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/changes/2.0.0 https://maven.apache.org/xsd/changes-2.0.0.xsd">
   <body>
+    <release version="1.4.3" date="2026-11-17" description="Improves error handling for I/O failures in Bindex workflows.">
+      <action dev="dev" type="fix">Wrapped Bindex workflow I/O failures to provide consistent error handling.</action>
+    </release>
   </body>
 </document>
