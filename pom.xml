@@ -8,15 +8,18 @@
 	<parent>
 		<groupId>org.machanism.machai</groupId>
 		<artifactId>machai</artifactId>
-		<version>1.4.3</version>
+		<version>1.4.4-SNAPSHOT</version>
 	</parent>
 	<packaging>maven-plugin</packaging>
 
 	<artifactId>bindex-maven-plugin</artifactId>
 	<name>Bindex Maven Plugin</name>
 
-	<!-- @guidance: Analyze the project and put the short description to the `description` tag.  -->
-	<description>Maven plugin that generates and registers Bindex metadata for Maven projects and reactor builds.</description>
+	<!-- @guidance: Summarize the `src/site/markdown/index.md` introduction
+	section and put this conten to the `description` tag.  -->
+	<description>Integrates Machai workflows with Maven to generate and register
+		Bindex metadata across reactor builds and individual modules, using
+		shared Ghostwriter configuration and optional GenAI assistance.</description>
 
 	<properties>
 		<maven.compiler.release>17</maven.compiler.release>
@@ -122,11 +125,13 @@
 	</licenses>
 
 	<scm>
-		<connection>scm:git:https://github.com/machanism-org/bindex-maven-plugin.git</connection>
-		<developerConnection>scm:git:https://github.com/machanism-org/bindex-maven-plugin.git</developerConnection>
+		<connection>
+			scm:git:https://github.com/machanism-org/bindex-maven-plugin.git</connection>
+		<developerConnection>
+			scm:git:https://github.com/machanism-org/bindex-maven-plugin.git</developerConnection>
 		<url>https://github.com/machanism-org/bindex-maven-plugin.git</url>
 	</scm>
-	
+
 	<issueManagement>
 		<url>https://github.com/machanism-org/bindex-maven-plugin/issues</url>
 	</issueManagement>
