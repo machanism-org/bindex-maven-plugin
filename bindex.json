@@ -1,9 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/machanism-org/bindex-core/refs/heads/main/src/main/resources/schema/bindex-schema-v2.json",
-  "id": "org.machanism.machai:bindex-maven-plugin:1.4.2",
+  "id": "org.machanism.machai:bindex-maven-plugin:1.4.3",
   "name": "org.machanism.machai:bindex-maven-plugin",
-  "version": "1.4.2",
-  "description": "Bindex Maven Plugin is a Java 17 Maven plugin for generating and registering Bindex metadata in Maven projects and multi-module reactors. It integrates Maven's project, session, settings, dependency-resolution, and base-directory context with Machai Ghostwriter workflows. The reactor-wide bindex and register goals run once for a build and can be invoked without a Maven project; bindex-per-module and register-per-module run for each bound Maven module. Generation delegates to the bindex Machai Act and registration delegates to bindex/register. Workflow configuration supports an optional configuration file, AI model selection, supplemental instructions, excluded paths, Maven settings server credentials, and arbitrary action parameters. The plugin is intended for Maven-based library and application teams that want repeatable Bindex metadata generation and registry publication from command-line commands or lifecycle-bound plugin executions.",
+  "version": "1.4.3",
+  "description": "Bindex Maven Plugin is a Java 17 Maven plugin that brings Machai Ghostwriter Bindex workflows into Maven builds. It provides four thread-safe goals: the reactor-wide bindex goal generates Bindex metadata once for a build, bindex-per-module generates metadata separately in each Maven module, register registers reactor metadata, and register-per-module registers metadata for each module. Generation invokes the bindex Machai Act and registration invokes bindex/register. Goals receive Maven session, project, effective settings, and base-directory context and support workflow configuration files, model selection, supplemental instructions, excluded paths, a selected settings.xml server, and arbitrary action parameters. The plugin is suited to command-line usage and lifecycle-bound metadata generation and registry registration in single- and multi-module Maven projects. Model-assisted workflows can use providers configured through Machai Ghostwriter and its GenAI client; credentials should be held outside project POM files.",
   "authors": [
     {
       "name": "Viktor Tovstyi",
@@ -15,10 +15,11 @@
   "classification": {
     "type": "Maven plugin",
     "domains": [
-      "Build Automation",
-      "Maven Build Tooling",
-      "Software Metadata",
-      "AI-Assisted Developer Tooling"
+      "Build automation",
+      "Maven plugin development and lifecycle integration",
+      "Software artifact metadata generation",
+      "Semantic library indexing",
+      "Developer tooling and metadata registration"
     ],
     "languages": [
       {
@@ -30,63 +31,65 @@
       "Infrastructure"
     ],
     "usageContext": [
-      "Maven command line",
-      "Maven lifecycle execution",
-      "Multi-module Maven reactors",
-      "Bindex metadata generation and registration"
+      "Maven command-line invocation",
+      "Maven lifecycle-bound plugin execution",
+      "Single-module Maven projects",
+      "Multi-module Maven reactor builds",
+      "Generating Bindex metadata for Java artifacts",
+      "Registering generated metadata with the Bindex registry",
+      "Ghostwriter workflows requiring Maven project and settings context"
     ],
     "targetEnvironment": [
       "Java",
-      "Maven"
+      "Apache Maven"
     ],
     "integrations": [
       "Machai Ghostwriter",
-      "Bindex Registry",
-      "Maven settings.xml"
+      "Bindex registry"
     ]
   },
   "constructors": [
     {
       "package": "org.machanism.machai.bindex.maven",
       "signature": "public org.machanism.machai.bindex.maven.BindexMojo()",
-      "description": "Creates Maven's reactor-wide Bindex generation mojo. Maven instantiates the mojo and injects configuration before execution.",
+      "description": "Maven-instantiated aggregator mojo for the reactor-wide Bindex generation goal. Maven creates the mojo reflectively and injects settings, session, project context when available, base directory, and workflow parameters before execution.",
       "examples": [
         {
-          "snippet": "org.machanism.machai.bindex.maven.BindexMojo mojo = new org.machanism.machai.bindex.maven.BindexMojo();",
-          "description": "Maven normally constructs this mojo, but this illustrates the concrete goal class used for reactor-wide generation."
+          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.4.3:bindex",
+          "description": "Use Maven's plugin goal rather than constructing the Mojo directly in application code; this command runs the reactor-wide generation workflow."
         }
       ]
     },
     {
       "package": "org.machanism.machai.bindex.maven",
       "signature": "public org.machanism.machai.bindex.maven.BindexPerModuleMojo()",
-      "description": "Creates Maven's per-module Bindex generation mojo, which Maven executes in the context of each bound project.",
+      "description": "Maven-instantiated non-aggregator mojo for generating Bindex metadata in the current Maven project. Each module to which the goal is bound receives its own execution and project context.",
       "examples": [
         {
-          "snippet": "org.machanism.machai.bindex.maven.BindexPerModuleMojo mojo = new org.machanism.machai.bindex.maven.BindexPerModuleMojo();",
-          "description": "Maven normally constructs this mojo while preparing a module-specific execution."
+          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.4.3:bindex-per-module",
+          "description": "Invoke generation in module execution contexts when each Maven module needs an independent Bindex document."
         }
       ]
     },
     {
       "package": "org.machanism.machai.bindex.maven",
       "signature": "public org.machanism.machai.bindex.maven.RegisterMojo()",
-      "description": "Creates Maven's reactor-wide Bindex registration mojo.",
+      "description": "Maven-instantiated aggregator mojo for registration of generated Bindex metadata across the reactor. It inherits the shared workflow configuration and delegates registration to the bindex/register Machai Act.",
       "examples": [
         {
-          "snippet": "org.machanism.machai.bindex.maven.RegisterMojo mojo = new org.machanism.machai.bindex.maven.RegisterMojo();",
-          "description": "Maven normally constructs this mojo to run one registration workflow for the reactor."
+          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.4.3:register",
+          "description": "Run the reactor-level registration workflow after the corresponding metadata has been generated."
         }
       ]
     },
     {
       "package": "org.machanism.machai.bindex.maven",
       "signature": "public org.machanism.machai.bindex.maven.RegisterPerModuleMojo()",
-      "description": "Creates Maven's per-module Bindex registration mojo.",
+      "description": "Maven-instantiated non-aggregator mojo for registering metadata within the current module's Maven context. It inherits per-module workflow configuration and delegates to bindex/register.",
       "examples": [
         {
-          "snippet": "org.machanism.machai.bindex.maven.RegisterPerModuleMojo mojo = new org.machanism.machai.bindex.maven.RegisterPerModuleMojo();",
-          "description": "Maven normally constructs this mojo to register metadata for the current module."
+          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.4.3:register-per-module",
+          "description": "Run registration separately in the module contexts that contain generated module-specific Bindex metadata."
         }
       ]
     }
@@ -96,11 +99,11 @@
       "package": "org.machanism.machai.bindex.maven",
       "name": "bindex",
       "signature": "public void org.machanism.machai.bindex.maven.BindexMojo.execute() throws org.apache.maven.plugin.MojoExecutionException",
-      "description": "Runs the bindex Machai Act once for the Maven reactor. Use this aggregator goal to generate a single Bindex metadata result for a complete build.",
+      "description": "Executes the bindex Machai Act once for the reactor. This thread-safe aggregator goal does not require a Maven project and accepts workflow context and configuration inherited from the Ghostwriter Maven integration.",
       "examples": [
         {
-          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.4.2:bindex",
-          "description": "Invokes the installed plugin's reactor-wide generation goal from a Maven project directory."
+          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.4.3:bindex -Dgw.model=OpenAI:gpt-4o-mini",
+          "description": "Generate reactor-level Bindex metadata and explicitly select a provider model. Configure credentials in the chosen Maven settings server and select it with genai.serverId when the workflow requires authentication."
         }
       ]
     },
@@ -108,11 +111,11 @@
       "package": "org.machanism.machai.bindex.maven",
       "name": "bindex-per-module",
       "signature": "public void org.machanism.machai.bindex.maven.BindexPerModuleMojo.execute() throws org.apache.maven.plugin.MojoExecutionException, org.apache.maven.plugin.MojoFailureException",
-      "description": "Runs the bindex Machai Act for the current Maven project. Bind it when every module in a reactor requires its own Bindex metadata generation execution.",
+      "description": "Executes the bindex Machai Act for the current Maven project. This thread-safe goal requires a project, is not an aggregator, and can be bound to a lifecycle phase to generate metadata independently for participating modules.",
       "examples": [
         {
-          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.4.2:bindex-per-module",
-          "description": "Invokes the module-scoped generation goal for Maven projects in the active build."
+          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.4.3:bindex-per-module -Dgw.instructions=Index each module independently",
+          "description": "Run module-scoped generation with optional additional instructions. The goal executes within each bound module's project context."
         }
       ]
     },
@@ -120,11 +123,11 @@
       "package": "org.machanism.machai.bindex.maven",
       "name": "register",
       "signature": "public void org.machanism.machai.bindex.maven.RegisterMojo.execute() throws org.apache.maven.plugin.MojoExecutionException",
-      "description": "Runs the bindex/register Machai Act once for the reactor to register generated Bindex metadata with the configured registry.",
+      "description": "Executes bindex/register once for the reactor to register previously generated metadata. This thread-safe aggregator goal can be invoked without a Maven project and inherits shared workflow configuration from org.machanism.machai.bindex.maven.BindexMojo.",
       "examples": [
         {
-          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.4.2:register",
-          "description": "Invokes one reactor-wide registration workflow after metadata is available."
+          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.4.3:register",
+          "description": "Invoke a single registration workflow for metadata produced for the complete Maven reactor. Supply registry and workflow settings through the configured Ghostwriter workflow."
         }
       ]
     },
@@ -132,25 +135,37 @@
       "package": "org.machanism.machai.bindex.maven",
       "name": "register-per-module",
       "signature": "public void org.machanism.machai.bindex.maven.RegisterPerModuleMojo.execute() throws org.apache.maven.plugin.MojoExecutionException",
-      "description": "Runs the bindex/register Machai Act in each module context, making module-specific metadata and Maven configuration available to registration.",
+      "description": "Executes bindex/register for the current Maven module, requiring a project and executing separately in module context. It inherits the workflow parameters and Maven context provided by org.machanism.machai.bindex.maven.BindexPerModuleMojo.",
       "examples": [
         {
-          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.4.2:register-per-module",
-          "description": "Invokes module-scoped registration for the projects participating in the active Maven build."
+          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.4.3:register-per-module",
+          "description": "Register module-specific metadata separately for every participating project in a multi-module build."
         }
       ]
     }
   ],
   "customizations": [
     {
-      "name": "Ghostwriter workflow parameters",
+      "name": "Ghostwriter workflow configuration",
       "package": "org.machanism.machai.bindex.maven",
-      "description": "All goals accept Maven-injected workflow settings including gw.config, gw.model, gw.instructions, gw.excludes, genai.serverId, and a params map for action-specific values. Maven settings server entries can provide credentials without placing secrets in the project POM.",
-      "type": "Maven plugin configuration property",
+      "description": "Each goal inherits configuration for an optional workflow configuration file, model selection, supplemental instructions, excluded paths, a selected Maven settings server, and arbitrary action-specific string parameters. The effective Maven settings and session are made available to the workflow. Provider-specific configuration is handled by the transitive Machai GenAI client; credentials should not be committed in the POM.",
+      "type": "Maven plugin parameters and workflow properties",
       "examples": [
         {
-          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.4.2:bindex -Dgw.model=gpt-4o-mini -Dgenai.serverId=machai-genai",
-          "description": "Selects a workflow model and a Maven settings server that supplies credentials for a reactor-wide generation run."
+          "snippet": "mvn org.machanism.machai:bindex-maven-plugin:1.4.3:bindex -Dgw.model=OpenAI:gpt-4o-mini -Dgenai.serverId=machai-genai -Dgw.excludes=target/**",
+          "description": "Select a model and Maven settings server and exclude generated build files for a reactor generation run. Additional configuration can be supplied using gw.config or the plugin params map."
+        }
+      ]
+    },
+    {
+      "name": "Lifecycle-bound per-module goals",
+      "package": "org.machanism.machai.bindex.maven",
+      "description": "The per-module generation and registration goals can be attached to a Maven lifecycle phase through standard plugin executions. This allows module-specific Bindex processing to run consistently as part of a project build.",
+      "type": "Maven plugin execution",
+      "examples": [
+        {
+          "snippet": "<plugin><groupId>org.machanism.machai</groupId><artifactId>bindex-maven-plugin</artifactId><version>1.4.3</version><executions><execution><phase>verify</phase><goals><goal>bindex-per-module</goal></goals></execution></executions></plugin>",
+          "description": "Add this plugin execution to a parent POM to run module-scoped metadata generation during verify for applicable modules."
         }
       ]
     }
@@ -158,48 +173,66 @@
   "studs": [],
   "examples": [
     {
-      "title": "Generate Bindex metadata for a Maven reactor",
+      "title": "Install and run reactor-wide Bindex generation",
+      "description": "Install the plugin through Maven plugin coordinates in the consuming project's POM, configure workflow access outside the project source, then invoke the aggregator goal from the reactor root.",
       "steps": [
-        "Add org.machanism.machai:bindex-maven-plugin:1.4.2 to the build plugins section, or invoke it with fully qualified Maven coordinates.",
-        "Optionally configure a Maven settings.xml server and select it with genai.serverId when the selected workflow needs credentials.",
-        "Run mvn org.machanism.machai:bindex-maven-plugin:1.4.2:bindex from the reactor root.",
-        "The aggregator goal delegates to the bindex Machai Act once for the reactor."
+        "Add org.machanism.machai:bindex-maven-plugin:1.4.3 in the build/plugins section of the consuming project's POM; Maven resolves the released plugin from its configured repositories.",
+        "If the selected provider requires credentials, add a server with id machai-genai to the user's Maven settings.xml. Keep API keys and passwords out of the POM and source control.",
+        "Choose a model using the gw.model Maven property and select the settings entry using genai.serverId when needed.",
+        "From the reactor root, run mvn org.machanism.machai:bindex-maven-plugin:1.4.3:bindex.",
+        "The aggregator invokes the bindex Machai Act once with the Maven workflow context to generate metadata for the reactor."
       ],
-      "configuration": "<plugin>\n  <groupId>org.machanism.machai</groupId>\n  <artifactId>bindex-maven-plugin</artifactId>\n  <version>1.4.2</version>\n</plugin>",
-      "command": "mvn org.machanism.machai:bindex-maven-plugin:1.4.2:bindex"
+      "configuration": "<plugin>\n  <groupId>org.machanism.machai</groupId>\n  <artifactId>bindex-maven-plugin</artifactId>\n  <version>1.4.3</version>\n</plugin>",
+      "settingsExample": "<settings>\n  <servers>\n    <server>\n      <id>machai-genai</id>\n      <username>configured-user</username>\n      <password>configured-secret</password>\n    </server>\n  </servers>\n</settings>",
+      "command": "mvn org.machanism.machai:bindex-maven-plugin:1.4.3:bindex -Dgw.model=OpenAI:gpt-4o-mini -Dgenai.serverId=machai-genai"
     },
     {
-      "title": "Generate and register metadata for each module",
+      "title": "Generate and register metadata for every module",
+      "description": "Configure generation and registration as module-scoped Maven goals when each module needs its own Bindex document and registry operation.",
       "steps": [
-        "Configure the plugin in a parent POM execution with the bindex-per-module goal.",
-        "Run the Maven lifecycle or invoke bindex-per-module so Maven supplies each module project context.",
-        "After generation, invoke register-per-module using the same plugin version.",
-        "The per-module registration goal delegates to the bindex/register Machai Act for each module."
+        "Declare org.machanism.machai:bindex-maven-plugin:1.4.3 in the parent POM build/plugins configuration so all intended modules inherit it.",
+        "Bind bindex-per-module to verify to generate module-specific metadata as part of the lifecycle.",
+        "Run mvn verify from the reactor root; Maven executes generation in each participating module context.",
+        "After successful generation, run register-per-module from the reactor root to register each module's metadata through the bindex/register Act.",
+        "Supply optional workflow properties such as gw.config, gw.model, gw.instructions, gw.excludes, genai.serverId, or action-specific params as appropriate."
       ],
-      "configuration": "<plugin>\n  <groupId>org.machanism.machai</groupId>\n  <artifactId>bindex-maven-plugin</artifactId>\n  <version>1.4.2</version>\n  <executions>\n    <execution>\n      <goals>\n        <goal>bindex-per-module</goal>\n      </goals>\n    </execution>\n  </executions>\n</plugin>",
+      "configuration": "<plugin>\n  <groupId>org.machanism.machai</groupId>\n  <artifactId>bindex-maven-plugin</artifactId>\n  <version>1.4.3</version>\n  <executions>\n    <execution>\n      <phase>verify</phase>\n      <goals>\n        <goal>bindex-per-module</goal>\n      </goals>\n    </execution>\n  </executions>\n</plugin>",
       "commands": [
-        "mvn org.machanism.machai:bindex-maven-plugin:1.4.2:bindex-per-module",
-        "mvn org.machanism.machai:bindex-maven-plugin:1.4.2:register-per-module"
+        "mvn verify -Dgw.model=OpenAI:gpt-4o-mini -Dgenai.serverId=machai-genai",
+        "mvn org.machanism.machai:bindex-maven-plugin:1.4.3:register-per-module -Dgenai.serverId=machai-genai"
       ]
+    },
+    {
+      "title": "Configure a direct OpenAI workflow credential in Maven settings",
+      "description": "Provider-specific properties are passed to the underlying workflow. Store the API key in the selected Maven server configuration rather than committing it to the POM.",
+      "steps": [
+        "Create a user-level Maven settings.xml server entry with an id such as machai-openai.",
+        "Provide the provider's OPENAI_API_KEY in the selected server configuration as supported by the Ghostwriter GenAI integration.",
+        "Select the server and OpenAI model on the Maven invocation.",
+        "Run the desired generation or registration goal with that configuration."
+      ],
+      "configuration": "<server>\n  <id>machai-openai</id>\n  <configuration>\n    <OPENAI_API_KEY>your-api-key</OPENAI_API_KEY>\n  </configuration>\n</server>",
+      "command": "mvn org.machanism.machai:bindex-maven-plugin:1.4.3:bindex -Dgw.model=OpenAI:gpt-4o-mini -Dgenai.serverId=machai-openai"
     }
   ],
   "dependencies": [
-    "org.machanism.machai:gw-maven-plugin:1.4.2",
-    "org.machanism.machai:bindex-core:1.4.2",
+    "org.machanism.machai:gw-maven-plugin:1.4.3",
+    "org.machanism.machai:bindex-core:1.4.3",
     "org.apache.commons:commons-lang3:3.20.0",
     "com.google.guava:guava:33.5.0-jre",
     "org.apache.maven.shared:maven-shared-utils:3.4.2",
     "org.apache.maven:maven-core:3.8.1",
     "org.apache.maven.plugin-tools:maven-plugin-annotations:3.15.2",
-    "org.codehaus.plexus:plexus-interactivity-api:1.5.1"
+    "org.codehaus.plexus:plexus-interactivity-api:1.5.1",
+    "org.slf4j:slf4j-api:2.0.17"
   ],
   "location": {
     "repositoryType": "Maven",
-    "repositoryUrl": "https://central.sonatype.com/artifact/org.machanism.machai/bindex-maven-plugin/1.4.2",
+    "repositoryUrl": "https://central.sonatype.com/artifact/org.machanism.machai/bindex-maven-plugin/1.4.3",
     "coordinates": {
       "group": "org.machanism.machai",
       "artifactId": "bindex-maven-plugin",
-      "version": "1.4.2",
+      "version": "1.4.3",
       "extension": "jar"
     }
   }
